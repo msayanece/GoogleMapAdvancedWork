@@ -81,13 +81,14 @@ public class LocationFetchHelper {
 
     /**
      * Use this constructor for default operations (1 minute, balanced power)
-     *<p>
+     * <p>
+     *
      * @param context          use Activity context
      *                         </p><p>
      * @param mListener        listener for getting location fetch callbacks (success or failed) {@link FetchLocationSuccessListener}
-     * </p><p>
+     *                         </p><p>
      * @param mFailureListener failure listener for getting error message callback
-     * </p><p>
+     *                         </p><p>
      * @param shouldUseService if true, this helper class will be using a service and alarm manager
      *                         for fetching continuous and repeated location fetching; even after
      *                         rebooting it may continue
@@ -97,8 +98,8 @@ public class LocationFetchHelper {
         this.context = context;
         LocationFetchHelperSingleton.getInstance().setFetchLocationListener(mListener);
         LocationFetchHelperSingleton.getInstance().setFetchLocationFailureListener(mFailureListener);
-        LocationFetchHelperSingleton.getInstance().setLocationIntervalTime(60 * 1000);
-        LocationFetchHelperSingleton.getInstance().setLocationFastestIntervalTime(10000);
+        LocationFetchHelperSingleton.getInstance().setLocationIntervalTime(20 * 1000);
+        LocationFetchHelperSingleton.getInstance().setLocationFastestIntervalTime(10 * 1000);
         LocationFetchHelperSingleton.getInstance().setShouldUseService(shouldUseService);
         LocationFetchHelperSingleton.getInstance().setLocationPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         startLocationFetchActivity();
@@ -113,8 +114,8 @@ public class LocationFetchHelper {
      *                                    </p><p>
      * @param mListener                   listener for getting location fetch callbacks (success or failed)  {@link FetchLocationSuccessListener}
      *                                    </p><p>
-     *                                    @param mFailureListener failure listener for getting error message callback
-     * </p><p>
+     * @param mFailureListener            failure listener for getting error message callback
+     *                                    </p><p>
      * @param locationIntervalTime        the interval time for fetching location
      *                                    </p><p>
      * @param locationFastestIntervalTime the fastest interval time for fetching location,
@@ -145,17 +146,18 @@ public class LocationFetchHelper {
 
     /**
      * Call this method to stop the continuous location update
+     *
      * @param context Activity context
      * @return true if successfully canceled the service, false if failed
      */
     public static boolean stopLocationService(Context context) {
-        Intent cancelAlarm=new Intent(context, AlarmBroadcastReceiver.class);
+        Intent cancelAlarm = new Intent(context, AlarmBroadcastReceiver.class);
         PendingIntent cancelAlarmPendingIntent = PendingIntent.getBroadcast(context, LocationFetchHelper.LocationFetchService.REQUEST_CODE_ALARM, cancelAlarm, 0);
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (alarmManager != null) {
             alarmManager.cancel(cancelAlarmPendingIntent);
             return true;
-        }else {
+        } else {
             return false;
         }
 
@@ -193,7 +195,7 @@ public class LocationFetchHelper {
         private FetchLocationSuccessListener mListener;
         private FetchLocationFalureListener mfailureListener;
         private boolean mRequestingLocationUpdates = false;
-        private LocationCallback mLocationCallback = new LocationCallback(){
+        private LocationCallback mLocationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
@@ -203,7 +205,7 @@ public class LocationFetchHelper {
             @Override
             public void onLocationAvailability(LocationAvailability locationAvailability) {
                 super.onLocationAvailability(locationAvailability);
-                if (!locationAvailability.isLocationAvailable()){
+                if (!locationAvailability.isLocationAvailable()) {
                     afterLocationFetchFailed("Unable to fetch your location");
                 }
             }
@@ -493,7 +495,7 @@ public class LocationFetchHelper {
         private FetchLocationSuccessListener mListener;
         private GoogleApiClient mGoogleApiClient;
         private LocationRequest mLocationRequest;
-        private LocationCallback mLocationCallback = new LocationCallback(){
+        private LocationCallback mLocationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
@@ -503,7 +505,7 @@ public class LocationFetchHelper {
             @Override
             public void onLocationAvailability(LocationAvailability locationAvailability) {
                 super.onLocationAvailability(locationAvailability);
-                if (!locationAvailability.isLocationAvailable()){
+                if (!locationAvailability.isLocationAvailable()) {
                     afterLocationFetchFailed("Unable to fetch your location");
                 }
             }
@@ -548,7 +550,7 @@ public class LocationFetchHelper {
             } catch (IllegalArgumentException e) {
                 try {
                     mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-                } catch (IllegalArgumentException ex){
+                } catch (IllegalArgumentException ex) {
                     ex.printStackTrace();
                 }
             }
@@ -602,9 +604,9 @@ public class LocationFetchHelper {
 
         private void afterLocationFetchFailed(String errorMessage) {
             FetchLocationFalureListener fetchLocationFailureListener = LocationFetchHelperSingleton.getInstance().getFetchLocationFailureListener();
-            if (fetchLocationFailureListener != null){
+            if (fetchLocationFailureListener != null) {
                 fetchLocationFailureListener.onLocationFetchFailed(errorMessage);
-            }else {
+            } else {
                 Toast.makeText(this, errorMessage + ", please check your gps settings.", Toast.LENGTH_SHORT).show();
             }
         }
@@ -618,12 +620,25 @@ public class LocationFetchHelper {
                         stopSelf();
                     }
                 }, 200);
-            } else {
-                long locationIntervalTime = LocationFetchHelperSingleton.getInstance().getLocationIntervalTime();
-                setAlarm(getApplicationContext(), locationIntervalTime);
-                //TODO uncomment this for send location to server using retrofit
-//                sentCurrentLocationToServer(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()));
+            }else if (LocationFetchHelperSingleton.getInstance().getFetchLocationListener() != null){
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            LocationFetchHelperSingleton.getInstance().getFetchLocationListener().onLocationFetched(location.getLatitude(), location.getLongitude());
+                        }catch (NullPointerException e){
+                            e.printStackTrace();
+                        }
+                        stopSelf();
+                    }
+                }, 200);
             }
+            long locationIntervalTime = LocationFetchHelperSingleton.getInstance().getLocationIntervalTime();
+            LocationFetchHelperSingleton.getInstance().setFetchLocationListener(mListener);
+            setAlarm(getApplicationContext(), locationIntervalTime);
+            //TODO uncomment this for send location to server using retrofit
+//                sentCurrentLocationToServer(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()));
+
         }
 
         //TODO uncomment this for send location to server using retrofit
@@ -661,7 +676,7 @@ public class LocationFetchHelper {
                 alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), triggerAfter, alarmPendingIntent);
 //            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),1000 * 60 * 1, alarmPendingIntent);
             }
-            SharedPreferences sharedPreferences = context.getSharedPreferences(context.getPackageName() + "/location", MODE_PRIVATE);
+            SharedPreferences sharedPreferences = context.getSharedPreferences(context.getPackageName() + "_location", MODE_PRIVATE);
             sharedPreferences.edit().putLong("triggerAfter", triggerAfter);
             context.registerReceiver(new AlarmBootReceiver(), new IntentFilter("android.intent.action.BOOT_COMPLETED"));
         }
@@ -680,7 +695,7 @@ public class LocationFetchHelper {
         public void onDestroy() {
             super.onDestroy();
             mGoogleApiClient.disconnect();
-            mListener = null;
+//            mListener = null;
         }
     }
 }
