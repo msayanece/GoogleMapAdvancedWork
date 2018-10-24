@@ -1,31 +1,34 @@
 package com.sayan.rnd.googlemapadvancedwork.mapsrelated;
 
-import android.graphics.Point;
-import android.os.Handler;
-import android.os.SystemClock;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.animation.Interpolator;
-import android.view.animation.LinearInterpolator;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.sayan.rnd.googlemapadvancedwork.R;
 import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.FetchLocationFalureListener;
 import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.FetchLocationSuccessListener;
 import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.LocationFetchHelper;
+import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.LocationFetchHelperSingleton;
+import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.LocationPermissionListener;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
+    private static final long LOCATION_FASTEST_INTERVAL = 5 * 1000;
+    private static final long LOCATION_INTERVAL = 20 * 1000;
     private boolean isFirstLoading;
     private Marker myCurrentLocation;
+    private GoogleApiClient mGoogleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +46,56 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         isFirstLoading = true;
-        fetchLocation(googleMap);
+//        fetchLocation(googleMap);
+
+        setUpGoogleApiClient();
+    }
+
+    private void setUpGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+//                .addApi(Places.GEO_DATA_API)
+//                .addApi(Places.PLACE_DETECTION_API)
+                .build();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        LocationRequest locationRequest = createLocationRequest();
+        new LocationFetchHelper(this, locationRequest, new LocationPermissionListener() {
+            @Override
+            public void onPermissionGranted() {
+                Toast.makeText(MapsActivity.this, "permission granted", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onPermissionDenied(String errorMessage) {
+                Toast.makeText(MapsActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Toast.makeText(this, "Google API connection suspended.", Toast.LENGTH_SHORT).show();
+        mGoogleApiClient.clearDefaultAccountAndReconnect();
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Toast.makeText(this, connectionResult.getErrorMessage(), Toast.LENGTH_SHORT).show();
+//        mGoogleApiClient.clearDefaultAccountAndReconnect();
+    }
+
+    protected LocationRequest createLocationRequest() {
+        LocationRequest locationRequest = new LocationRequest();
+        locationRequest.setInterval(LOCATION_INTERVAL);
+        locationRequest.setFastestInterval(LOCATION_FASTEST_INTERVAL);
+        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        return locationRequest;
     }
 
     private void fetchLocation(final GoogleMap googleMap) {
@@ -73,8 +125,5 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
     }
-
-
-
 
 }
