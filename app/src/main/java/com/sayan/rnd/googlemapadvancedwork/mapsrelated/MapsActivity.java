@@ -1,5 +1,7 @@
 package com.sayan.rnd.googlemapadvancedwork.mapsrelated;
 
+import android.annotation.SuppressLint;
+import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -8,6 +10,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
@@ -22,13 +25,15 @@ import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.LocationFetchHel
 import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.LocationFetchHelperSingleton;
 import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.LocationPermissionListener;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MapsActivity extends AppCompatActivity implements LocationListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final long LOCATION_FASTEST_INTERVAL = 5 * 1000;
     private static final long LOCATION_INTERVAL = 20 * 1000;
     private boolean isFirstLoading;
     private Marker myCurrentLocation;
     private GoogleApiClient mGoogleApiClient;
+    private LocationRequest mLocationRequest;
+    private GoogleMap mGoogleMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +52,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         isFirstLoading = true;
 //        fetchLocation(googleMap);
-
+        mGoogleMap = googleMap;
         setUpGoogleApiClient();
     }
 
@@ -64,11 +69,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        LocationRequest locationRequest = createLocationRequest();
-        new LocationFetchHelper(this, locationRequest, new LocationPermissionListener() {
+        mLocationRequest = createLocationRequest();
+        new LocationFetchHelper(this, mLocationRequest, new LocationPermissionListener() {
             @Override
             public void onPermissionGranted() {
                 Toast.makeText(MapsActivity.this, "permission granted", Toast.LENGTH_SHORT).show();
+                startLocationUpdates();
             }
 
             @Override
@@ -76,6 +82,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Toast.makeText(MapsActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @SuppressLint("MissingPermission")
+    private void startLocationUpdates() {
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, MapsActivity.this);
     }
 
     @Override
@@ -120,10 +131,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             isFirstLoading = false;
         } else {
             LatLng position = myCurrentLocation.getPosition();
-            if (CoordinateUtil.getDistance(position.latitude, position.longitude, latitude, longitude) > 0.01) {
+            if (CoordinateUtil.getDistance(position.latitude, position.longitude, latitude, longitude) > 0.001) {
                 MarkerStyleUtil.animateMarker(googleMap, myCurrentLocation, new LatLng(latitude, longitude), false);
             }
         }
     }
 
+    @Override
+    public void onLocationChanged(Location location) {
+        setMarkerWork(mGoogleMap, location.getLatitude(), location.getLongitude());
+    }
 }
