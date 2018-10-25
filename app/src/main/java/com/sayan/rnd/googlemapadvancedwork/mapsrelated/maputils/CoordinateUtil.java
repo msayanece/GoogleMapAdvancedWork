@@ -1,4 +1,4 @@
-package com.sayan.rnd.googlemapadvancedwork.mapsrelated;
+package com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils;
 
 public class CoordinateUtil {
 

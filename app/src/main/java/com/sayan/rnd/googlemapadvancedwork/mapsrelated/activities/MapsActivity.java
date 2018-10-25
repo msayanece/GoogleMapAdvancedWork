@@ -25,8 +25,8 @@ import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.FetchLocationFal
 import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.FetchLocationSuccessListener;
 import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.LocationFetchHelper;
 import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.LocationPermissionListener;
-import com.sayan.rnd.googlemapadvancedwork.mapsrelated.CoordinateUtil;
-import com.sayan.rnd.googlemapadvancedwork.mapsrelated.MarkerStyleUtil;
+import com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.CoordinateUtil;
+import com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MarkerStyleUtil;
 
 public class MapsActivity extends AppCompatActivity implements /*LocationListener, */OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
