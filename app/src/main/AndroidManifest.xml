@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -21,7 +22,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".mapsrelated.MapsActivity"/>
+        <activity android:name=".mapsrelated.activities.MapsActivity" />
         <activity
             android:name=".locationfetchrelated.LocationFetchHelper$LocationFetchActivity"
             android:theme="@style/Theme.AppCompat.Translucent" />
@@ -30,6 +31,7 @@
             android:name=".locationfetchrelated.LocationFetchHelper$LocationFetchService"
             android:enabled="true"
             android:exported="true" />
+
         <receiver
             android:name=".locationfetchrelated.AlarmBootReceiver"
             android:enabled="true"
@@ -45,9 +47,12 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDvGll_qro6fenI9eS0YEzf3XJw0XSIpqg"/>
+            android:value="AIzaSyDvGll_qro6fenI9eS0YEzf3XJw0XSIpqg" />
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
+
+        <activity android:name=".mapsrelated.activities.MapsAnimationPlayback"></activity>
     </application>
+
 </manifest>

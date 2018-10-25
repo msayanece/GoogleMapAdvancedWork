@@ -11,7 +11,7 @@
         android:layout_marginLeft="22dp"
         android:layout_marginStart="22dp"
         android:layout_marginTop="2dp"
-        android:src="@drawable/custom_marker" />
+        android:src="@drawable/ic_custom_marker_rectangle" />
 
     <ImageView
         android:id="@+id/markerImageRectangular"

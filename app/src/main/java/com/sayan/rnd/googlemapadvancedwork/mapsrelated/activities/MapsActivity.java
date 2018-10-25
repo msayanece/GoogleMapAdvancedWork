@@ -1,4 +1,4 @@
-package com.sayan.rnd.googlemapadvancedwork.mapsrelated;
+package com.sayan.rnd.googlemapadvancedwork.mapsrelated.activities;
 
 import android.annotation.SuppressLint;
 import android.location.Location;
@@ -11,9 +11,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationAvailability;
 import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
@@ -27,6 +25,8 @@ import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.FetchLocationFal
 import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.FetchLocationSuccessListener;
 import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.LocationFetchHelper;
 import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.LocationPermissionListener;
+import com.sayan.rnd.googlemapadvancedwork.mapsrelated.CoordinateUtil;
+import com.sayan.rnd.googlemapadvancedwork.mapsrelated.MarkerStyleUtil;
 
 public class MapsActivity extends AppCompatActivity implements /*LocationListener, */OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
