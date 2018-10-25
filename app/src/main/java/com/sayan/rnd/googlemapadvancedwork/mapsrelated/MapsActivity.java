@@ -2,6 +2,7 @@ package com.sayan.rnd.googlemapadvancedwork.mapsrelated;
 
 import android.annotation.SuppressLint;
 import android.location.Location;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -10,8 +11,11 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationAvailability;
+import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -24,7 +28,7 @@ import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.FetchLocationSuc
 import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.LocationFetchHelper;
 import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.LocationPermissionListener;
 
-public class MapsActivity extends AppCompatActivity implements LocationListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MapsActivity extends AppCompatActivity implements /*LocationListener, */OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final long LOCATION_FASTEST_INTERVAL = 5 * 1000;
     private static final long LOCATION_INTERVAL = 20 * 1000;
@@ -85,7 +89,11 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
 
     @SuppressLint("MissingPermission")
     private void startLocationUpdates() {
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, MapsActivity.this);
+        //uncomment this line of code if you want to use onLocationChange of LocationListener class.
+        // also uncomment the implements interface of LocationListener in this activity
+//        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, MapsActivity.this);
+        LocationServices.getFusedLocationProviderClient(this).
+                requestLocationUpdates(mLocationRequest, new MyLocationCallback(this), Looper.myLooper());
     }
 
     @Override
@@ -137,8 +145,25 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
         }
     }
 
-    @Override
     public void onLocationChanged(Location location) {
         setMarkerWork(mGoogleMap, location.getLatitude(), location.getLongitude());
+    }
+
+    private static class MyLocationCallback extends LocationCallback {
+        private MapsActivity mapsActivity;
+
+        MyLocationCallback(MapsActivity mapsActivity) {
+            this.mapsActivity = mapsActivity;
+        }
+
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            super.onLocationResult(locationResult);
+            try {
+                mapsActivity.onLocationChanged(locationResult.getLastLocation());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
