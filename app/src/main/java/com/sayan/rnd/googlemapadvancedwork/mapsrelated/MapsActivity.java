@@ -145,10 +145,12 @@ public class MapsActivity extends AppCompatActivity implements /*LocationListene
         }
     }
 
+    //override method if you are using LocationListener. Else, simple method for next work
     public void onLocationChanged(Location location) {
         setMarkerWork(mGoogleMap, location.getLatitude(), location.getLongitude());
     }
 
+    //comment this if you are using LocationListener
     private static class MyLocationCallback extends LocationCallback {
         private MapsActivity mapsActivity;
 
