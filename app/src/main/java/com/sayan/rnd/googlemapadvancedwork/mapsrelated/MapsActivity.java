@@ -22,7 +22,6 @@ import com.sayan.rnd.googlemapadvancedwork.R;
 import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.FetchLocationFalureListener;
 import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.FetchLocationSuccessListener;
 import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.LocationFetchHelper;
-import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.LocationFetchHelperSingleton;
 import com.sayan.rnd.googlemapadvancedwork.locationfetchrelated.LocationPermissionListener;
 
 public class MapsActivity extends AppCompatActivity implements LocationListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -30,7 +29,7 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
     private static final long LOCATION_FASTEST_INTERVAL = 5 * 1000;
     private static final long LOCATION_INTERVAL = 20 * 1000;
     private boolean isFirstLoading;
-    private Marker myCurrentLocation;
+    private Marker myCurrentLocationMarker;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
     private GoogleMap mGoogleMap;
@@ -127,12 +126,13 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
 
     private void setMarkerWork(GoogleMap googleMap, double latitude, double longitude) {
         if (isFirstLoading) {
-            myCurrentLocation = MarkerStyleUtil.setMarkerInMap(googleMap, "My Location", latitude, longitude, true, false);
+            myCurrentLocationMarker = MarkerStyleUtil.setMarkerInMap(googleMap, "My Location", latitude, longitude, true, false);
+            MarkerStyleUtil.setCustomMarkerCircular(this, myCurrentLocationMarker, "https://www.eve24hrs.com/upload/userprofilepicture/user_profile_201810091038431385949295.jpg");
             isFirstLoading = false;
         } else {
-            LatLng position = myCurrentLocation.getPosition();
+            LatLng position = myCurrentLocationMarker.getPosition();
             if (CoordinateUtil.getDistance(position.latitude, position.longitude, latitude, longitude) > 0.001) {
-                MarkerStyleUtil.animateMarker(googleMap, myCurrentLocation, new LatLng(latitude, longitude), false);
+                MarkerStyleUtil.animateMarker(googleMap, myCurrentLocationMarker, new LatLng(latitude, longitude), false);
             }
         }
     }
