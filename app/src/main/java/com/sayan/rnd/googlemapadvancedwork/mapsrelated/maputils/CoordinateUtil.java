@@ -46,4 +46,16 @@ public class CoordinateUtil {
     public static double rad2deg(double rad) {
         return (rad * 180.0 / Math.PI);
     }
+
+    /**
+     * Static method used for finding bearing difference in degree
+     *
+     * @param oldBearingInDegree old bearing
+     * @param newBearingInDegree new bearing
+     *
+     * @return the calculated difference of bearings
+     */
+    public static float findBearingDifference(float oldBearingInDegree, float newBearingInDegree) {
+        return Math.abs(oldBearingInDegree - newBearingInDegree);
+    }
 }

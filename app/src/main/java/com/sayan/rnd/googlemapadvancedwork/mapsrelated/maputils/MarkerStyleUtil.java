@@ -5,6 +5,10 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Point;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorManager;
+import android.location.Location;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.v7.widget.LinearLayoutCompat;
@@ -19,6 +23,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -62,8 +67,10 @@ public class MarkerStyleUtil {
      * @param toPosition the LatLng of the location where the marker needs to be moved
      * @param hideMarker marker will be invisible if it set to true. Set it to false if you are unsure about what argument to pass
      */
-    public static void animateMarker(final GoogleMap googleMap, final Marker marker, final LatLng toPosition,
-                                     final boolean hideMarker) {
+    public static void animateMarker(final GoogleMap googleMap, final Marker marker, final Location toPosition,
+                                     final boolean hideMarker, final boolean shouldConsiderBearing, final boolean centerCamera) {
+        float startBearing = 0.0f;
+        float bearing = 0.0f;
         if (toPosition == null || marker == null) {
             return;
         }
@@ -75,21 +82,33 @@ public class MarkerStyleUtil {
         Projection proj = googleMap.getProjection();
         Point startPoint = proj.toScreenLocation(marker.getPosition());
         final LatLng startLatLng = proj.fromScreenLocation(startPoint);
+        if (shouldConsiderBearing) {
+            startBearing = marker.getRotation();
+            bearing = toPosition.getBearing();
+        }
         final long duration = 500;
         final Interpolator interpolator = new LinearInterpolator();
 
+        final float finalBearing = bearing;
+        final float finalStartBearing = startBearing;
         handler.post(new Runnable() {
             @Override
             public void run() {
                 try {
+                    float bear = 0.0f;
                     long elapsed = SystemClock.uptimeMillis() - start;
                     float t = interpolator.getInterpolation((float) elapsed
                             / duration);
-                    double lng = t * toPosition.longitude + (1 - t)
+                    double lng = t * toPosition.getLongitude() + (1 - t)
                             * startLatLng.longitude;
-                    double lat = t * toPosition.latitude + (1 - t)
+                    double lat = t * toPosition.getLatitude() + (1 - t)
                             * startLatLng.latitude;
+                    if (shouldConsiderBearing) {
+                        bear = t * finalBearing + (1 - t)
+                                * finalStartBearing;
+                    }
                     marker.setPosition(new LatLng(lat, lng));
+                    marker.setRotation(bear);
                     if (t < 1.0) {
                         // Post again 16ms later.
                         handler.postDelayed(this, 16);
@@ -97,10 +116,14 @@ public class MarkerStyleUtil {
                         if (hideMarker) {
                             marker.setVisible(false);
                         } else {
-                            marker.setPosition(toPosition);
+                            marker.setPosition(new LatLng(toPosition.getLatitude(), toPosition.getLongitude()));
+                            if (shouldConsiderBearing)
+                                marker.setRotation(toPosition.getBearing());
                             marker.setVisible(true);
                         }
                     }
+                    if (centerCamera)
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(lat, lng)));
                 } catch (NullPointerException e) {
                     e.printStackTrace();
                 }
@@ -176,6 +199,7 @@ public class MarkerStyleUtil {
             @Override
             public void onSuccess() {
                 marker.setIcon(BitmapDescriptorFactory.fromBitmap(createDrawableFromView(markerView)));
+                marker.setFlat(false);
                 marker.setVisible(true);
             }
 
@@ -194,6 +218,28 @@ public class MarkerStyleUtil {
             @Override
             public void onSuccess() {
                 marker.setIcon(BitmapDescriptorFactory.fromBitmap(createDrawableFromView(markerView)));
+                marker.setFlat(false);
+                marker.setVisible(true);
+            }
+
+            @Override
+            public void onFailure() {
+
+            }
+        });
+    }
+
+    public static void setCustomMarkerFlat(Context context, final Marker marker, String imageURL, final Location location, final float anchorX, final float anchorY) {
+        final View markerView = ((LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE))
+                .inflate(R.layout.custom_marker_flat_layout, null);
+        final ImageView markerImage = (ImageView) markerView.findViewById(R.id.markerImageFlatCircular);
+        GlideConnector.getInstance().loadImageBitmapWithSize(context, imageURL, markerImage, 50, 50, new GlideConnector.GlideCallback() {
+            @Override
+            public void onSuccess() {
+                marker.setIcon(BitmapDescriptorFactory.fromBitmap(createDrawableFromView(markerView)));
+                marker.setRotation(location.getBearing());
+                marker.setAnchor(anchorX, anchorY);
+                marker.setFlat(true);
                 marker.setVisible(true);
             }
 
@@ -216,6 +262,11 @@ public class MarkerStyleUtil {
         Canvas canvas = new Canvas(bitmap);
         view.draw(canvas);
         return bitmap;
+    }
+
+    public static void detectRotation(Context context){
+        SensorManager mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        Sensor mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
     }
 
 }

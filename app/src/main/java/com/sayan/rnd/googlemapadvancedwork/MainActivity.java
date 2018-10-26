@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void openMap(View view) {
-        Intent intent = new Intent(this, MapsAnimationPlayback.class);
+        Intent intent = new Intent(this, MapsActivity.class);
         startActivity(intent);
     }
 }

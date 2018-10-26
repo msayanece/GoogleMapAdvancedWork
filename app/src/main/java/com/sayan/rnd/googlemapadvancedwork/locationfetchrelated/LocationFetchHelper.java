@@ -534,7 +534,7 @@ public class LocationFetchHelper {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        mListener.onLocationFetched(location.getLatitude(), location.getLongitude());
+                        mListener.onLocationFetched(location);
                     }
                 }, 200);
             }
@@ -670,7 +670,7 @@ public class LocationFetchHelper {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        mListener.onLocationFetched(location.getLatitude(), location.getLongitude());
+                        mListener.onLocationFetched(location);
                         stopSelf();
                     }
                 }, 200);
@@ -679,7 +679,7 @@ public class LocationFetchHelper {
                     @Override
                     public void run() {
                         try {
-                            LocationFetchHelperSingleton.getInstance().getFetchLocationListener().onLocationFetched(location.getLatitude(), location.getLongitude());
+                            LocationFetchHelperSingleton.getInstance().getFetchLocationListener().onLocationFetched(location);
                         } catch (NullPointerException e) {
                             e.printStackTrace();
                         }
