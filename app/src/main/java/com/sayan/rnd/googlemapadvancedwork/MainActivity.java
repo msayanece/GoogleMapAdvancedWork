@@ -5,8 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
-import com.sayan.rnd.googlemapadvancedwork.mapsrelated.activities.MapsActivity;
-import com.sayan.rnd.googlemapadvancedwork.mapsrelated.activities.MapsAnimationPlayback;
+import com.sayan.rnd.googlemapadvancedwork.mapsrelated.activities.MapsAnimationPlaybackActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -17,7 +16,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void openMap(View view) {
-        Intent intent = new Intent(this, MapsActivity.class);
+        Intent intent = new Intent(this, MapsAnimationPlaybackActivity.class);
         startActivity(intent);
     }
 }
