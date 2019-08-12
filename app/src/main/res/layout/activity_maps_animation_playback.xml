@@ -17,11 +17,12 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:layout_alignParentBottom="true"
+            android:layout_marginBottom="0dp"
             android:background="@color/colorPrimary"
-            android:weightSum="2.2"
             android:gravity="center_vertical"
             android:orientation="vertical"
-            android:paddingBottom="1dp">
+            android:paddingBottom="1dp"
+            android:weightSum="2.2">
 
             <TextView
                 android:id="@+id/addressTextView"
@@ -36,8 +37,7 @@
             <android.support.v4.widget.Space
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="0.1"
-                />
+                android:layout_weight="0.1" />
 
             <TextView
                 android:id="@+id/dateTimeTextView"
@@ -88,14 +88,12 @@
 
         <fragment
             android:id="@+id/playbackMap"
-            xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:map="http://schemas.android.com/apk/res-auto"
-            xmlns:tools="http://schemas.android.com/tools"
             android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="700dp"
             android:layout_above="@+id/linearLayoutPlayback"
             map:cameraZoom="15"
-            tools:context="com.gpsinhand.gps_in_hand.MapsActivity"/>
+            tools:context=".mapsrelated.activities.MapsAnimationPlaybackActivity"/>
     </RelativeLayout>
 </android.support.design.widget.CoordinatorLayout>

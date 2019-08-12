@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
+import com.sayan.rnd.googlemapadvancedwork.mapsrelated.activities.MapsActivity;
 import com.sayan.rnd.googlemapadvancedwork.mapsrelated.activities.MapsAnimationPlaybackActivity;
 
 public class MainActivity extends AppCompatActivity {

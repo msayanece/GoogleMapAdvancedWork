@@ -37,7 +37,7 @@ public class MapPlaybackController {
 
     public void onClickPlay() {
         if (mapPlaybackDataHolder.getCurrentPt() == mapPlaybackDataHolder.getMarkers().size()-1){
-            mapsAnimationPlaybackActivity.onMapReady(mMap);
+//            mapsAnimationPlaybackActivity.onMapReady(mMap);
         }else {
             if (playPauseLatitude != 0.0 && playPauseLongitude != 0.0) {
                 playAnimation();
