@@ -2,13 +2,25 @@ package com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils;
 
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.SeekBar;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.sayan.rnd.googlemapadvancedwork.mapsrelated.activities.MapsAnimationPlaybackActivity;
+
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.ANIMATION_PAUSE;
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.ANIMATION_SEEKING;
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.DELAY;
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.PLAYBACK_MARKER_TITLE;
 
 public class MapPlaybackController {
     private static MapPlaybackController instance;
@@ -23,6 +35,7 @@ public class MapPlaybackController {
 
     private MapPlaybackController(MapsAnimationPlaybackActivity mapsAnimationPlaybackActivity, GoogleMap mMap){
         this.mapsAnimationPlaybackActivity = mapsAnimationPlaybackActivity;
+        this.mapPlaybackViewHolder = new MapPlaybackViewHolder(mapsAnimationPlaybackActivity);
         this.mapPlaybackDataHolder = MapPlaybackDataHolder.getInstance();
         this.MyCancelableCallback = new MapAnimationCallback(mapPlaybackDataHolder, this);
         this.mMap = mMap;
@@ -45,8 +58,12 @@ public class MapPlaybackController {
         return instance;
     }
 
-    public void setPlaybackMarker(Marker marker){
-        mapPlaybackDataHolder.setPlaybackMarker(marker);
+    public MapPlaybackDataHolder getMapPlaybackDataHolder() {
+        return mapPlaybackDataHolder;
+    }
+
+    public MapPlaybackViewHolder getMapPlaybackViewHolder() {
+        return mapPlaybackViewHolder;
     }
 
     public void onClickPlay() {
@@ -68,7 +85,7 @@ public class MapPlaybackController {
     }
 
     private void pauseAnimation() {
-        animationState = MapPlaybackConstants.ANIMATION_PAUSE;
+        animationState = ANIMATION_PAUSE;
 //        mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setAllGesturesEnabled(true);
 //        try {
@@ -112,6 +129,104 @@ public class MapPlaybackController {
         mapsAnimationPlaybackActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
+    //seekbar touch skip playback
+    private void setSeekBarChangeListener() {
+        mapPlaybackViewHolder.getSeekBar().setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                Log.d("Seek", "onProgressChanged: "+progress+"fromUser: "+fromUser);
+                if (fromUser) {
+                    onClickPause();
+                    mapPlaybackDataHolder.setCurrentPoint(progress);
+                    try {
+                        Thread.sleep(DELAY);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    mMap.clear();
+                    mMap.addPolyline(new PolylineOptions());
+                    mMap.clear();
+                    mapPlaybackViewHolder.drawMarker(
+                            mapPlaybackDataHolder.getFromLatitude(),
+                            mapPlaybackDataHolder.getFromLongitude(),
+                            "From",
+                            mMap
+                    );
+                    mMap.getUiSettings().setZoomControlsEnabled(false);
+                    mMap.getUiSettings().setAllGesturesEnabled(true);
+                    LatLng seekBarLatLong = mapPlaybackDataHolder.getPoints().get(progress);
+                    PolylineOptions seekPolylineOptions= new PolylineOptions();
+                    for (int i = 0; i <= progress; i++){
+                        seekPolylineOptions.add(mapPlaybackDataHolder.getPoints().get(i));
+                    }
+                    seekPolylineOptions.color(Color.BLUE);
+                    seekPolylineOptions.geodesic(false);
+                    seekPolylineOptions.width(6f);
+
+                    mapPlaybackDataHolder.setPolyLine(mMap.addPolyline(seekPolylineOptions));
+
+                    mapPlaybackViewHolder.drawMarker(
+                            seekBarLatLong.latitude,
+                            seekBarLatLong.longitude,
+                            PLAYBACK_MARKER_TITLE,
+                            mMap,
+                            false,
+                            true
+                    );
+
+                    //old replacement code
+//
+//                    mapPlaybackDataHolder.setPlaybackMarker(mMap.addMarker(
+//                            new MarkerOptions()
+//                                    .position(seekBarLatLong)
+//                                    .title(PLAYBACK_MARKER_TITLE)
+//                    ));
+//                    mapPlaybackDataHolder.getPlaybackMarker()
+//                            .setIcon(BitmapDescriptorFactory.fromBitmap(createDrawableFromView(marker)));
+//
+//                    mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(seekBarLatLong.latitude, seekBarLatLong.longitude)));
+//                    mMap.animateCamera(
+//                            CameraUpdateFactory.zoomTo(mMap.getCameraPosition().zoom + 0.5f),
+//                            1,
+//                            MySeekbarCallback);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                if (animationState == ANIMATION_PAUSE){
+
+                }else {
+                    onClickPause();
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            animationState = ANIMATION_SEEKING;
+                        }
+                    },DELAY);
+                }
+                mapPlaybackDataHolder.setSeekBarTouching(true);
+                Log.d("Seek", "onStartTrackingTouch: ");
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                Log.d("Seek", "onStopTrackingTouch: ");
+                playPauseLatitude = mapPlaybackDataHolder.getPoints().get(mapPlaybackDataHolder.getCurrentPoint()).latitude;
+                playPauseLongitude = mapPlaybackDataHolder.getPoints().get(mapPlaybackDataHolder.getCurrentPoint()).longitude;
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mapPlaybackDataHolder.setSeekBarTouching(false);
+                        if (animationState == ANIMATION_SEEKING){
+                            onClickPlay();
+                        }
+                    }
+                },DELAY);
+            }
+        });
+    }
+
     public void onBackPressed() {
         mapsAnimationPlaybackActivity.onBackPressed();
     }
@@ -119,10 +234,14 @@ public class MapPlaybackController {
     public void notifyDataSetChanged(){
         String currentDateTime = mapPlaybackDataHolder.getDates().get(mapPlaybackDataHolder.getCurrentPoint());
         String currentAddress = mapPlaybackDataHolder.getAddresses().get(mapPlaybackDataHolder.getCurrentPoint());
-        mapsAnimationPlaybackActivity.notifyDataSetChanged(
+        mapPlaybackViewHolder.notifyDataSetChanged(
                 currentDateTime,
                 currentAddress,
                 mapPlaybackDataHolder.getCurrentPoint()
         );
+    }
+
+    public void clearMap() {
+        mMap.clear();
     }
 }

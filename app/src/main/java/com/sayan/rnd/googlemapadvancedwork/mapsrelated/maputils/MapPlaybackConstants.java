@@ -7,5 +7,6 @@ public class MapPlaybackConstants {
     public static final int ANIMATION_SEEKING = 3;
 
     public static final int DELAY = 300;
+    public static final String PLAYBACK_MARKER_TITLE = "Playback marker";
 
 }
