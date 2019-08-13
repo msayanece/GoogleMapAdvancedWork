@@ -5,4 +5,7 @@ public class MapPlaybackConstants {
     public static final int ANIMATION_PLAY = 2;
     public static final int ANIMATION_DEFAULT = 0;
     public static final int ANIMATION_SEEKING = 3;
+
+    public static final int DELAY = 300;
+
 }

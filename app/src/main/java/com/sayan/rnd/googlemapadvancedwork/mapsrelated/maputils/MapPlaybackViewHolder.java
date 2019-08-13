@@ -7,6 +7,14 @@ public class MapPlaybackViewHolder {
     private ImageView buttonPlay;
     private ImageView buttonPause;
 
+    public ImageView getButtonPlay() {
+        return buttonPlay;
+    }
+
+    public ImageView getButtonPause() {
+        return buttonPause;
+    }
+
     public MapPlaybackViewHolder() {}
 
     public MapPlaybackViewHolder(ImageView buttonPlay, ImageView buttonPause) {

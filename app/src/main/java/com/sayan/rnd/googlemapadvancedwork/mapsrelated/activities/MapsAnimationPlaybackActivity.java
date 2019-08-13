@@ -1,19 +1,20 @@
 package com.sayan.rnd.googlemapadvancedwork.mapsrelated.activities;
 
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
 import android.content.res.Resources;
-import android.os.Build;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentManager;
-import android.support.v7.app.AlertDialog;
+import android.graphics.Color;
+import android.graphics.Point;
+import android.graphics.PorterDuff;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.AppCompatSeekBar;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -22,24 +23,26 @@ import android.widget.Toast;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.sayan.rnd.googlemapadvancedwork.R;
 import com.sayan.rnd.googlemapadvancedwork.mapsrelated.LocationDataHolder;
+import com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapAnimationUtil;
 import com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackController;
 import com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MarkerStyleUtil;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.ANIMATION_DEFAULT;
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.DELAY;
+
 public class MapsAnimationPlaybackActivity extends AppCompatActivity implements OnMapReadyCallback {
+
 
     private static boolean isActivityInForeground = false;
     private ImageView buttonPlay;
@@ -50,14 +53,14 @@ public class MapsAnimationPlaybackActivity extends AppCompatActivity implements 
     private double toLatitude;
     private double toLongitude;
 
-    private Marker playbackMarker;
     private String title = "Marker";
     private CameraPosition cameraPosition;
 
-    private ArrayList<Object> points;
-    private ArrayList<Object> dates;
-    private ArrayList<Object> addresses;
-    private ArrayList<Object> markers;
+    //View properties
+    private LinearLayout linearLayoutBottomBar;
+    private TextView addressTextView;
+    private TextView dateTimeTextView;
+    private AppCompatSeekBar seekBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,50 +79,48 @@ public class MapsAnimationPlaybackActivity extends AppCompatActivity implements 
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        MapPlaybackController.getInstance(this, googleMap);
+        //First time initialize MapPlaybackController with googleMap so that in future we can use it later
+        MapPlaybackController mapPlaybackController = MapPlaybackController.getInstance(this, googleMap);
+        //clear the map
         googleMap.clear();
-        points = new ArrayList<>();
-        dates = new ArrayList<>();
-        addresses = new ArrayList<>();
-        markers = new ArrayList<>();
-        ArrayList<LatLng> locationsJSON = LocationDataHolder.getLocationsJSON();
-        fromLatitude = locationsJSON.get(0).latitude;
-        fromLongitude = locationsJSON.get(0).longitude;
-
-        toLatitude = locationsJSON.get(locationsJSON.size() - 1).longitude;
-        toLongitude = locationsJSON.get(locationsJSON.size() - 1).longitude;
-
-        playbackMarker = MarkerStyleUtil.setMarkerInMap(
-                googleMap,
-                title,
-                fromLatitude,
-                fromLongitude,
-                false,
-                false
-        );
-
-        MarkerStyleUtil.setCustomMarkerCircular(
-                this,
-                playbackMarker,
-                "https://oc2.ocstatic.com/images/logo_small.png"
-        );
-
+        //get from location and to location data
+        ArrayList<LatLng> locations = LocationDataHolder.getLocationsJSON();
+        fromLatitude = locations.get(0).latitude;
+        fromLongitude = locations.get(0).longitude;
+        toLatitude = locations.get(locations.size() - 1).longitude;
+        toLongitude = locations.get(locations.size() - 1).longitude;
+        //draw the marker responsible for play back. disable info window
+        Marker playbackMarker = drawMarker(fromLatitude, fromLongitude, title, googleMap);
+        mapPlaybackController.setPlaybackMarker(playbackMarker);
         playbackMarker.hideInfoWindow();
-//        cameraPosition =
-//                new CameraPosition.Builder()
-//                        .target(new LatLng(fromLatitude,fromLongitude))
-//                        .bearing(15)
-//                        .tilt(15)
-//                        .zoom(googleMap.getCameraPosition().zoom)
-//                        .build();
-
+        //focus map camera to the initial from location
+        cameraPosition =
+                new CameraPosition.Builder()
+                        .target(new LatLng(fromLatitude,fromLongitude))
+                        .bearing(15)
+                        .tilt(15)
+                        .zoom(googleMap.getCameraPosition().zoom)
+                        .build();
+        //draw marker on from position
         Marker fromMarker = drawMarker(fromLatitude, fromLongitude, "From", googleMap);
+        //move the map camera to initial from location
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(fromLatitude, fromLongitude)));
-        Marker toMarker = drawMarker(toLatitude, toLongitude, "To", googleMap);
-//        googleMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(toLatitude, toLongitude)));
+        /*//draw marker on to position
+        Marker toMarker = drawMarker(toLatitude, toLongitude, "To", googleMap);*/
     }
 
+
+
+    /**
+     * Map marker util method. Draw a custom circular marker on Map
+     * @param latitude latitude of the marker position
+     * @param longitude longitude of the marker position
+     * @param title the marker title
+     * @param googleMap the map on which the marker needs to be draw
+     * @return the created marker object
+     */
     private Marker drawMarker(double latitude, double longitude, String title, GoogleMap googleMap) {
+        //create and draw the marker
         Marker marker = MarkerStyleUtil.setMarkerInMap(
                 googleMap,
                 title,
@@ -129,6 +130,7 @@ public class MapsAnimationPlaybackActivity extends AppCompatActivity implements 
                 false
         );
 
+        //customize the marker: make it circular
         MarkerStyleUtil.setCustomMarkerCircular(
                 this,
                 marker,
@@ -139,16 +141,25 @@ public class MapsAnimationPlaybackActivity extends AppCompatActivity implements 
 
     private void initializeViews() {
         //bottom Bar
-        LinearLayout linearLayoutBottomBar = findViewById(R.id.linearLayoutBottomBar);
-        TextView addressTextView = linearLayoutBottomBar.findViewById(R.id.addressTextView);
-        TextView dateTimeTextView = linearLayoutBottomBar.findViewById(R.id.dateTimeTextView);
+        linearLayoutBottomBar = findViewById(R.id.linearLayoutBottomBar);
+        addressTextView = linearLayoutBottomBar.findViewById(R.id.addressTextView);
+        dateTimeTextView = linearLayoutBottomBar.findViewById(R.id.dateTimeTextView);
 //        linearLayoutBottomBar.setVisibility(View.GONE);
 
         //Play back bar
         LinearLayout linearLayoutPlayback = findViewById(R.id.linearLayoutPlayback);
         buttonPlay = linearLayoutPlayback.findViewById(R.id.buttonPlay);
         buttonPause = linearLayoutPlayback.findViewById(R.id.buttonPause);
-        AppCompatSeekBar seekBar = linearLayoutPlayback.findViewById(R.id.seekBar);
+        seekBar = linearLayoutPlayback.findViewById(R.id.seekBar);
+    }
+
+    public void notifyDataSetChanged(String currentDateTime, String currentAddress, int currentProgress){
+        dateTimeTextView.setText(currentDateTime);
+        if (currentAddress != null) {
+            addressTextView.setText(currentAddress);
+        }
+        seekBar.setProgress(currentProgress);
+        seekBar.getProgressDrawable().setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN);
     }
 
     public void playPauseButtonOnClick(View view) {

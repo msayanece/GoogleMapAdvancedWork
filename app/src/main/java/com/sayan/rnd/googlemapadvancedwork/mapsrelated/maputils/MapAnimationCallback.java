@@ -1,7 +1,5 @@
 package com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils;
 
-import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.os.Handler;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -10,102 +8,126 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.sayan.rnd.googlemapadvancedwork.mapsrelated.activities.MapsAnimationPlaybackActivity;
 
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.ANIMATION_DEFAULT;
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.ANIMATION_PAUSE;
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.ANIMATION_PLAY;
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.DELAY;
+
 public class MapAnimationCallback implements GoogleMap.CancelableCallback{
 
-    private MapsAnimationPlaybackActivity mapsAnimationPlaybackActivity;
+    private MapPlaybackDataHolder mapPlaybackDataHolder;
+    private MapPlaybackController mapPlaybackController;
 
-    public MapAnimationCallback(MapsAnimationPlaybackActivity mapsAnimationPlaybackActivity) {
-        this.mapsAnimationPlaybackActivity = mapsAnimationPlaybackActivity;
-    }
+    private GoogleMap.CancelableCallback mFinalCancelableCallback = new GoogleMap.CancelableCallback() {
 
-    @Override
-    public void onFinish() {
-//        try {
-//            onClickPause();
-//        }catch (IndexOutOfBoundsException e){
-//            e.printStackTrace();
-//            mapsAnimationPlaybackActivity.onBackPressed();
-//        }
-//        new Handler().postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                if (MapsAnimationPlaybackActivity.isForeground()) {
-//                    onClickPlay();
-//                }else {
-//                    mapsAnimationPlaybackActivity.onBackPressed();
-//                }
-//            }
-//        },50);
+        @Override
+        public void onFinish() {
+            mapPlaybackController.stopAnimation();
+//            GoogleMapUtis.fixZoomForMarkers(mMap,markers);
+        }
+
+        @Override
+        public void onCancel() {
+
+        }
+    };
+
+    public MapAnimationCallback(MapPlaybackDataHolder mapPlaybackDataHolder, MapPlaybackController mapPlaybackController) {
+        this.mapPlaybackDataHolder = mapPlaybackDataHolder;
+        this.mapPlaybackController = mapPlaybackController;
     }
 
     @Override
     public void onCancel() {
-//        if(++currentPt < markers.size()){
-//            try {
-//                float targetBearing = bearingBetweenLatLngs(mMap.getCameraPosition().target, markers.get(currentPt).getPosition());
-//                LatLng targetLatLng = markers.get(currentPt).getPosition();
-//
-//                System.out.println(" ------- " + currentPt + " - " + markers.size() + " - " + targetBearing + " - " + targetLatLng);
-//
-//                CameraPosition cameraPosition =
-//                        new CameraPosition.Builder()
-//                                .target(targetLatLng)
-//                                .tilt(currentPt < markers.size() - 1 ? 10 : 0)
-//                                .bearing(targetBearing)
-//                                .zoom(mMap.getCameraPosition().zoom)
-//                                .build();
-//                dateTimeTextView.setText(dates.get(currentPt));
-//                if (!addresses.get(currentPt).equals("")) {
-//                    addressTextView.setText(addresses.get(currentPt));
-//                }
-//                seekBar.setProgress(currentPt);
-//                seekBar.getProgressDrawable().setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN);
-//                switch (animationState){
-//                    case ANIMATION_DEFAULT:
-//                        if (!isSeekBarTouching) {
-//                            mMap.animateCamera(
-//                                    CameraUpdateFactory.newCameraPosition(cameraPosition),
-//                                    delay,
-//                                    currentPt == markers.size() - 1 ? FinalCancelableCallback : MyCancelableCallback);
+        try {
+            mapPlaybackController.onClickPause();
+        }catch (IndexOutOfBoundsException e){
+            e.printStackTrace();
+            mapPlaybackController.onBackPressed();
+        }
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (MapsAnimationPlaybackActivity.isForeground()) {
+                    mapPlaybackController.onClickPlay();
+                }else {
+                    mapPlaybackController.onBackPressed();
+                }
+            }
+        },50);
+    }
+
+    @Override
+    public void onFinish() {
+        if(mapPlaybackDataHolder.incrementCurrentPoint() < mapPlaybackDataHolder.getMarkers().size()){
+            try {
+                float targetBearing = MapAnimationUtil.bearingBetweenLatLngs(
+                        mapPlaybackDataHolder.getGoogleMap().getCameraPosition().target,
+                        mapPlaybackDataHolder.getMarkers().get(mapPlaybackDataHolder.getCurrentPoint()).getPosition());
+                LatLng targetLatLng = mapPlaybackDataHolder.getMarkers().get(mapPlaybackDataHolder.getCurrentPoint()).getPosition();
+
+                System.out.println(" ------- " + mapPlaybackDataHolder.getCurrentPoint() + " - " + mapPlaybackDataHolder.getMarkers().size() + " - " + targetBearing + " - " + targetLatLng);
+
+                CameraPosition cameraPosition =
+                        new CameraPosition.Builder()
+                                .target(targetLatLng)
+                                .tilt(mapPlaybackDataHolder.getCurrentPoint() < mapPlaybackDataHolder.getMarkers().size() - 1 ? 10 : 0)
+                                .bearing(targetBearing)
+                                .zoom(mapPlaybackDataHolder.getGoogleMap().getCameraPosition().zoom)
+                                .build();
+                mapPlaybackController.notifyDataSetChanged();
+                switch (mapPlaybackDataHolder.getAnimationState()){
+                    case ANIMATION_DEFAULT:
+                        if (!mapPlaybackDataHolder.isSeekBarTouching()) {
+                            mapPlaybackDataHolder.getGoogleMap().animateCamera(
+                                    CameraUpdateFactory.newCameraPosition(cameraPosition),
+                                    DELAY,
+                                    mapPlaybackDataHolder.getCurrentPoint() ==
+                                            mapPlaybackDataHolder.getMarkers().size() - 1 ?
+                                            mFinalCancelableCallback :
+                                            this
+                            );
+//						googleMap.moveCamera(
+//								CameraUpdateFactory.newCameraPosition(cameraPosition));
+                            MarkerStyleUtil.animateMarker(mapPlaybackDataHolder.getGoogleMap(), mapPlaybackDataHolder.getPlaybackMarker(), targetLatLng, false, DELAY);
+//                                markers.get(currentPt).showInfoWindow();
+                        }
+                        break;
+
+                    case ANIMATION_PAUSE:
+                        if (!mapPlaybackDataHolder.isSeekBarTouching()) {
+//                                mapPlaybackDataHolder.getGoogleMap().animateCamera(
+//                                        CameraUpdateFactory.newCameraPosition(cameraPosition),
+//                                        delay, FinalCancelableCallback);
 ////						googleMap.moveCamera(
 ////								CameraUpdateFactory.newCameraPosition(cameraPosition));
 //
-//                            animateMarker(playbackMarker, targetLatLng, false);
-////                                markers.get(currentPt).showInfoWindow();
-//                        }
-//                        break;
-//
-//                    case ANIMATION_PAUSE:
-//                        if (!isSeekBarTouching) {
-////                                mMap.animateCamera(
-////                                        CameraUpdateFactory.newCameraPosition(cameraPosition),
-////                                        delay, FinalCancelableCallback);
-//////						googleMap.moveCamera(
-//////								CameraUpdateFactory.newCameraPosition(cameraPosition));
-////
-////                                setMarker(playbackMarker, targetLatLng);
-////                                markers.get(currentPt).showInfoWindow();
-//                        }
-//                        break;
-//
-//                    case ANIMATION_PLAY:
-//                        if (!isSeekBarTouching) {
-//                            mMap.animateCamera(
-//                                    CameraUpdateFactory.newCameraPosition(cameraPosition),
-//                                    delay,
-//                                    currentPt == markers.size() - 1 ? FinalCancelableCallback : MyCancelableCallback);
-//
-////						googleMap.moveCamera(
-////								CameraUpdateFactory.newCameraPosition(cameraPosition));
-//
-//                            animateMarker(playbackMarker, targetLatLng, false);
-////                                markers.get(currentPt).showInfoWindow();
-//                        }
-//                        break;
-//                }
-//            }catch (Exception e){
-//                e.printStackTrace();
-//            }
-//        }
+//                                setMarker(playbackMarker, targetLatLng);
+//                                markers.get(currentPt).showInfoWindow();
+                        }
+                        break;
+
+                    case ANIMATION_PLAY:
+                        if (!mapPlaybackDataHolder.isSeekBarTouching()) {
+                            mapPlaybackDataHolder.getGoogleMap().animateCamera(
+                                    CameraUpdateFactory.newCameraPosition(cameraPosition),
+                                    DELAY,
+                                    mapPlaybackDataHolder.getCurrentPoint() ==
+                                            mapPlaybackDataHolder.getMarkers().size() - 1 ?
+                                            mFinalCancelableCallback :
+                                            this
+                            );
+
+//						googleMap.moveCamera(
+//								CameraUpdateFactory.newCameraPosition(cameraPosition));
+                            MarkerStyleUtil.animateMarker(mapPlaybackDataHolder.getGoogleMap(), mapPlaybackDataHolder.getPlaybackMarker(), targetLatLng, false, DELAY);
+//                                markers.get(currentPt).showInfoWindow();
+                        }
+                        break;
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
     }
 }

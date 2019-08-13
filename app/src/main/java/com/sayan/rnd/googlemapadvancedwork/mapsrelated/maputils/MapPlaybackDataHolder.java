@@ -1,23 +1,44 @@
 package com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.Polyline;
 
 import java.util.ArrayList;
+
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.ANIMATION_DEFAULT;
 
 public class MapPlaybackDataHolder {
 
     private static MapPlaybackDataHolder instance;
 
-    private int currentPt;
+    private int currentPoint;
+
+    //properties
+    private ArrayList<LatLng> points;
+    private ArrayList<String> dates;
+    private ArrayList<String> addresses;
     private ArrayList<Marker> markers;
-    private MapPlaybackViewHolder mapPlaybackViewHolder;
+    private boolean isSeekBarTouching;
+    private Polyline polyLine;
+    private GoogleMap mMap;
+    private Marker playbackMarker;
+    private int animationState = ANIMATION_DEFAULT;
 
     private MapPlaybackDataHolder() {}
 
-    private MapPlaybackDataHolder(int currentPt, ArrayList<Marker> markers, MapPlaybackViewHolder mapPlaybackViewHolder) {
-        this.currentPt = currentPt;
+    private MapPlaybackDataHolder(int currentPoint, ArrayList<Marker> markers) {
+        this.currentPoint = currentPoint;
         this.markers = markers;
-        this.mapPlaybackViewHolder = mapPlaybackViewHolder;
+        initializeProperties();
+    }
+
+    private void initializeProperties() {
+        points = new ArrayList<>();
+        dates = new ArrayList<>();
+        addresses = new ArrayList<>();
+        markers = new ArrayList<>();
     }
 
     public static MapPlaybackDataHolder getInstance(){
@@ -27,34 +48,89 @@ public class MapPlaybackDataHolder {
         return instance;
     }
 
-    public static MapPlaybackDataHolder getInstance(int currentPt, ArrayList<Marker> markers, MapPlaybackViewHolder mapPlaybackViewHolder){
+    public static MapPlaybackDataHolder getInstance(int currentPt, ArrayList<Marker> markers){
         if (instance == null){
-            instance = new MapPlaybackDataHolder(currentPt, markers, mapPlaybackViewHolder);
+            instance = new MapPlaybackDataHolder(currentPt, markers);
         }
         return instance;
     }
 
-    public int getCurrentPt() {
-        return currentPt;
+    //region getters
+    public int getAnimationState() {
+        return animationState;
     }
 
-    public void setCurrentPt(int currentPt) {
-        this.currentPt = currentPt;
+    public Marker getPlaybackMarker() {
+        return playbackMarker;
+    }
+
+    public boolean isSeekBarTouching() {
+        return isSeekBarTouching;
+    }
+
+    public ArrayList<LatLng> getPoints() {
+        return points;
+    }
+
+    public ArrayList<String> getDates() {
+        return dates;
+    }
+
+    public ArrayList<String> getAddresses() {
+        return addresses;
     }
 
     public ArrayList<Marker> getMarkers() {
         return markers;
     }
 
+    public GoogleMap getGoogleMap() {
+        return mMap;
+    }
+
+    public int getCurrentPoint() {
+        return currentPoint;
+    }
+    //endregion
+
+    //region setters
+
+    public void setAnimationState(int animationState) {
+        this.animationState = animationState;
+    }
+
+    public void setPlaybackMarker(Marker playbackMarker) {
+        this.playbackMarker = playbackMarker;
+    }
+
+    public void setSeekBarTouching(boolean seekBarTouching) {
+        isSeekBarTouching = seekBarTouching;
+    }
+
+    public void setPoints(ArrayList<LatLng> points) {
+        this.points = points;
+    }
+
+    public void setDates(ArrayList<String> dates) {
+        this.dates = dates;
+    }
+
+    public void setAddresses(ArrayList<String> addresses) {
+        this.addresses = addresses;
+    }
+
     public void setMarkers(ArrayList<Marker> markers) {
         this.markers = markers;
     }
 
-    public MapPlaybackViewHolder getMapPlaybackViewHolder() {
-        return mapPlaybackViewHolder;
+    public void setCurrentPoint(int currentPoint) {
+        this.currentPoint = currentPoint;
     }
+    //endregion
 
-    public void setMapPlaybackViewHolder(MapPlaybackViewHolder mapPlaybackViewHolder) {
-        this.mapPlaybackViewHolder = mapPlaybackViewHolder;
+    //region property util methods
+    public int incrementCurrentPoint(){
+        return ++currentPoint;
     }
+    //endregion
 }
