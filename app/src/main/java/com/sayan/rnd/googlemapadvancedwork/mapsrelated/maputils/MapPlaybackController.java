@@ -5,7 +5,6 @@ import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -16,10 +15,8 @@ import android.widget.SeekBar;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.Projection;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.sayan.rnd.googlemapadvancedwork.mapsrelated.activities.MapsAnimationPlaybackActivity;
 
@@ -35,7 +32,6 @@ public class MapPlaybackController {
     private GoogleMap.CancelableCallback MyCancelableCallback;
     private MapPlaybackDataHolder mapPlaybackDataHolder;
     private MapPlaybackViewHolder mapPlaybackViewHolder;
-    private GoogleMap mMap;
     private double playPauseLatitude;
     private double playPauseLongitude;
 
@@ -45,7 +41,6 @@ public class MapPlaybackController {
         this.mapPlaybackDataHolder = MapPlaybackDataHolder.getInstance();
         this.mapPlaybackDataHolder.setmMap(mMap);
         this.MyCancelableCallback = new MapAnimationCallback(mapPlaybackDataHolder, this);
-        this.mMap = mMap;
         setSeekBarChangeListener();
     }
 
@@ -88,10 +83,10 @@ public class MapPlaybackController {
         if (!mapPlaybackDataHolder.isSeekBarTouching()) {
             final Handler handler = new Handler();
             final long start = SystemClock.uptimeMillis();
-            if (mMap == null) {
+            if (mapPlaybackDataHolder.getmMap() == null) {
                 return;
             }
-            Projection proj = mMap.getProjection();
+            Projection proj = mapPlaybackDataHolder.getmMap().getProjection();
             Point startPoint = proj.toScreenLocation(playbackMarker.getPosition());
             final LatLng startLatLng = proj.fromScreenLocation(startPoint);
             final long duration = delay;
@@ -132,7 +127,8 @@ public class MapPlaybackController {
 
     public void onClickPlay() {
         if (mapPlaybackDataHolder.getCurrentPoint() == mapPlaybackDataHolder.getMarkers().size() - 1) {
-            mapsAnimationPlaybackActivity.onMapReady(mMap);
+            mapPlaybackDataHolder.clearData();
+            mapsAnimationPlaybackActivity.onMapReady(mapPlaybackDataHolder.getmMap());
         } else {
             if (playPauseLatitude != 0.0 && playPauseLongitude != 0.0) {
                 playAnimation();
@@ -151,7 +147,7 @@ public class MapPlaybackController {
     private void pauseAnimation() {
         mapPlaybackDataHolder.setAnimationState(ANIMATION_PAUSE);
 //        mMap.getUiSettings().setZoomControlsEnabled(true);
-        mMap.getUiSettings().setAllGesturesEnabled(true);
+        mapPlaybackDataHolder.getmMap().getUiSettings().setAllGesturesEnabled(true);
 //        try {
 //            // Customise the styling of the base map using a JSON object defined
 //            // in a raw resource file.
@@ -170,11 +166,11 @@ public class MapPlaybackController {
 
     private void playAnimation() {
         mapPlaybackDataHolder.setAnimationState(ANIMATION_PLAY);
-        mMap.getUiSettings().setAllGesturesEnabled(false);
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(playPauseLatitude, playPauseLongitude)));
+        mapPlaybackDataHolder.getmMap().getUiSettings().setAllGesturesEnabled(false);
+        mapPlaybackDataHolder.getmMap().moveCamera(CameraUpdateFactory.newLatLng(new LatLng(playPauseLatitude, playPauseLongitude)));
         playPauseLatitude = 0.0;
         playPauseLongitude = 0.0;
-        mMap.animateCamera(
+        mapPlaybackDataHolder.getmMap().animateCamera(
                 CameraUpdateFactory.zoomTo(/*mMap.getCameraPosition().zoom*/14.5f + 0.5f),
                 1500,
                 MyCancelableCallback);
@@ -182,9 +178,9 @@ public class MapPlaybackController {
     }
 
     public void startAnimation() {
-        mapPlaybackDataHolder.setPolyLine(getMapPlaybackViewHolder().initializePolyLine(mMap, mapPlaybackDataHolder.getMarkers()));
-        mMap.getUiSettings().setZoomControlsEnabled(false);
-        mMap.getUiSettings().setAllGesturesEnabled(false);
+        mapPlaybackDataHolder.setPolyLine(getMapPlaybackViewHolder().initializePolyLine(mapPlaybackDataHolder.getmMap(), mapPlaybackDataHolder.getMarkers()));
+        mapPlaybackDataHolder.getmMap().getUiSettings().setZoomControlsEnabled(false);
+        mapPlaybackDataHolder.getmMap().getUiSettings().setAllGesturesEnabled(false);
 //        try {
 //            // Customise the styling of the base map using a JSON object defined
 //            // in a raw resource file.
@@ -197,8 +193,8 @@ public class MapPlaybackController {
 //        } catch (Resources.NotFoundException e) {
 //            Log.e("sayan", "Can't find style. Error: ", e);
 //        }
-        mMap.animateCamera(
-                CameraUpdateFactory.zoomTo(mMap.getCameraPosition().zoom + 0.5f),
+        mapPlaybackDataHolder.getmMap().animateCamera(
+                CameraUpdateFactory.zoomTo(mapPlaybackDataHolder.getmMap().getCameraPosition().zoom + 0.5f),
                 DELAY,
                 MyCancelableCallback);
         mapPlaybackDataHolder.setCurrentPoint(0 - 1);
@@ -212,7 +208,7 @@ public class MapPlaybackController {
             mapPlaybackViewHolder.getButtonPlay().setVisibility(View.VISIBLE);
             mapPlaybackViewHolder.getButtonPause().setVisibility(View.GONE);
         }
-        mMap.getUiSettings().setAllGesturesEnabled(true);
+        mapPlaybackDataHolder.getmMap().getUiSettings().setAllGesturesEnabled(true);
 //        dateTimeTextView.setText("DATE: "+historyDate+"     TIME: FROM "+end+" TO "+start);
         mapsAnimationPlaybackActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
@@ -231,18 +227,17 @@ public class MapPlaybackController {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    mMap.clear();
-                    mMap.addPolyline(new PolylineOptions());
-                    mMap.clear();
+                    mapPlaybackDataHolder.getmMap().addPolyline(new PolylineOptions());
+                    clearMap();
                     mapPlaybackViewHolder.drawMarker(
                             mapPlaybackDataHolder.getFromLatitude(),
                             mapPlaybackDataHolder.getFromLongitude(),
                             "From",
-                            mMap,
-                            "https://oc2.ocstatic.com/images/logo_small.png"
+                            mapPlaybackDataHolder.getmMap(),
+                            "https://interactive-examples.mdn.mozilla.net/media/examples/grapefruit-slice-332-332.jpg"
                     );
-                    mMap.getUiSettings().setZoomControlsEnabled(false);
-                    mMap.getUiSettings().setAllGesturesEnabled(true);
+                    mapPlaybackDataHolder.getmMap().getUiSettings().setZoomControlsEnabled(false);
+                    mapPlaybackDataHolder.getmMap().getUiSettings().setAllGesturesEnabled(true);
                     LatLng seekBarLatLong = mapPlaybackDataHolder.getPoints().get(progress);
                     PolylineOptions seekPolylineOptions = new PolylineOptions();
                     for (int i = 0; i <= progress; i++) {
@@ -252,13 +247,13 @@ public class MapPlaybackController {
                     seekPolylineOptions.geodesic(false);
                     seekPolylineOptions.width(6f);
 
-                    mapPlaybackDataHolder.setPolyLine(mMap.addPolyline(seekPolylineOptions));
+                    mapPlaybackDataHolder.setPolyLine(mapPlaybackDataHolder.getmMap().addPolyline(seekPolylineOptions));
 
                     Marker marker = mapPlaybackViewHolder.drawMarker(
                             seekBarLatLong.latitude,
                             seekBarLatLong.longitude,
                             PLAYBACK_MARKER_TITLE,
-                            mMap,
+                            mapPlaybackDataHolder.getmMap(),
                             false,
                             true
                     );
@@ -285,7 +280,7 @@ public class MapPlaybackController {
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
                 if (mapPlaybackDataHolder.getAnimationState() == ANIMATION_PAUSE) {
-
+                    mapPlaybackDataHolder.clearData();
                 } else {
                     onClickPause();
                     new Handler().postDelayed(new Runnable() {
@@ -342,6 +337,6 @@ public class MapPlaybackController {
     }
 
     public void clearMap() {
-        mMap.clear();
+        mapPlaybackDataHolder.clearData();
     }
 }

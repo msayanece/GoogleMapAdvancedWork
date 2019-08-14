@@ -72,8 +72,6 @@ public class MapsAnimationPlaybackActivity extends AppCompatActivity implements 
         double toLongitude = 0.0;
         //First time initialize MapPlaybackController with googleMap so that in future we can use it later
         mapPlaybackController = MapPlaybackController.getInstance(this, googleMap);
-        //clear the map
-        googleMap.clear();
         //get from location and to location data
         ArrayList<LatLng> locations = LocationDataHolder.getLocationsJSON();
         fromLatitude = locations.get(0).latitude;
@@ -82,13 +80,7 @@ public class MapsAnimationPlaybackActivity extends AppCompatActivity implements 
         toLongitude = locations.get(locations.size() - 1).longitude;
         //initialize SeekBar
         mapPlaybackController.initializeSeekBar(locations.size() - 1);
-        //draw the marker responsible for play back. disable info window
-        Marker playbackMarker = mapPlaybackController.getMapPlaybackViewHolder().drawMarker(
-                fromLatitude, fromLongitude, PLAYBACK_MARKER_TITLE, googleMap,
-                "https://oc2.ocstatic.com/images/logo_small.png"
-        );
         saveFromToLocationOnDataHolder(fromLatitude, fromLongitude, toLatitude, toLongitude, mapPlaybackController);
-        playbackMarker.hideInfoWindow();
         //focus map camera to the initial from location
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(new LatLng(fromLatitude, fromLongitude))
@@ -101,6 +93,12 @@ public class MapsAnimationPlaybackActivity extends AppCompatActivity implements 
                 fromLatitude, fromLongitude, "From", googleMap,
                 "https://interactive-examples.mdn.mozilla.net/media/examples/grapefruit-slice-332-332.jpg"
         );
+        //draw the marker responsible for play back. disable info window
+        Marker playbackMarker = mapPlaybackController.getMapPlaybackViewHolder().drawMarker(
+                fromLatitude, fromLongitude, PLAYBACK_MARKER_TITLE, googleMap,
+                "https://oc2.ocstatic.com/images/logo_small.png"
+        );
+        playbackMarker.hideInfoWindow();
         mapPlaybackController.getMapPlaybackDataHolder().setPlaybackMarker(playbackMarker);
         //move the map camera to initial from location
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(fromLatitude, fromLongitude)));
@@ -114,6 +112,8 @@ public class MapsAnimationPlaybackActivity extends AppCompatActivity implements 
         googleMap.getUiSettings().setZoomControlsEnabled(false);
         googleMap.setMaxZoomPreference(19f);
         googleMap.setMinZoomPreference(5f);
+        mapPlaybackController.getMapPlaybackDataHolder().getMarkers().clear();
+        mapPlaybackController.getMapPlaybackDataHolder().getPoints().clear();
         for (int i = 0; i < locations.size(); i++) {
             LatLng latLng = locations.get(i);
             final double latitude = latLng.latitude;
@@ -138,8 +138,7 @@ public class MapsAnimationPlaybackActivity extends AppCompatActivity implements 
 //                        addresses.add(streetAddress);
 //                    }
 //            }
-
-        mapPlaybackController.addMarkerToMap(new LatLng(latitude, longitude), googleMap);
+            mapPlaybackController.addMarkerToMap(new LatLng(latitude, longitude), googleMap);
             mapPlaybackController.getMapPlaybackDataHolder().getPoints().add(new LatLng(latitude, longitude));
 //            dates.add(datetime);
         }

@@ -32,6 +32,17 @@ public class MapPlaybackDataHolder {
     private double toLatitude;
     private double toLongitude;
 
+    public void clearData() {
+        for (Marker marker :
+                markers) {
+            if (marker != null)
+                marker.remove();
+        }
+        markers.clear();
+        playbackMarker.remove();
+        playbackMarker = null;
+    }
+
     private MapPlaybackDataHolder() {
         initializeProperties();
     }
@@ -49,15 +60,15 @@ public class MapPlaybackDataHolder {
         markers = new ArrayList<>();
     }
 
-    public static MapPlaybackDataHolder getInstance(){
-        if (instance == null){
+    public static MapPlaybackDataHolder getInstance() {
+        if (instance == null) {
             instance = new MapPlaybackDataHolder();
         }
         return instance;
     }
 
-    public static MapPlaybackDataHolder getInstance(int currentPt, ArrayList<Marker> markers){
-        if (instance == null){
+    public static MapPlaybackDataHolder getInstance(int currentPt, ArrayList<Marker> markers) {
+        if (instance == null) {
             instance = new MapPlaybackDataHolder(currentPt, markers);
         }
         return instance;
@@ -190,6 +201,9 @@ public class MapPlaybackDataHolder {
 
     //endregion
 
+
+    //region property util methods
+
     /**
      * Add the marker to the polyline.
      */
@@ -199,8 +213,7 @@ public class MapPlaybackDataHolder {
         polyLine.setPoints(points);
     }
 
-    //region property util methods
-    public int incrementCurrentPoint(){
+    public int incrementCurrentPoint() {
         return ++currentPoint;
     }
     //endregion
