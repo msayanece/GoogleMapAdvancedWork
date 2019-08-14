@@ -24,13 +24,13 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.sayan.rnd.googlemapadvancedwork.mapsrelated.activities.MapsAnimationPlaybackActivity;
 
 import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.ANIMATION_PAUSE;
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.ANIMATION_PLAY;
 import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.ANIMATION_SEEKING;
 import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.DELAY;
 import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.PLAYBACK_MARKER_TITLE;
 
 public class MapPlaybackController {
     private static MapPlaybackController instance;
-    private int animationState = MapPlaybackConstants.ANIMATION_DEFAULT;
     private MapsAnimationPlaybackActivity mapsAnimationPlaybackActivity;
     private GoogleMap.CancelableCallback MyCancelableCallback;
     private MapPlaybackDataHolder mapPlaybackDataHolder;
@@ -149,7 +149,7 @@ public class MapPlaybackController {
     }
 
     private void pauseAnimation() {
-        animationState = ANIMATION_PAUSE;
+        mapPlaybackDataHolder.setAnimationState(ANIMATION_PAUSE);
 //        mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setAllGesturesEnabled(true);
 //        try {
@@ -169,7 +169,7 @@ public class MapPlaybackController {
     }
 
     private void playAnimation() {
-        animationState = MapPlaybackConstants.ANIMATION_PLAY;
+        mapPlaybackDataHolder.setAnimationState(ANIMATION_PLAY);
         mMap.getUiSettings().setAllGesturesEnabled(false);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(playPauseLatitude, playPauseLongitude)));
         playPauseLatitude = 0.0;
@@ -238,7 +238,8 @@ public class MapPlaybackController {
                             mapPlaybackDataHolder.getFromLatitude(),
                             mapPlaybackDataHolder.getFromLongitude(),
                             "From",
-                            mMap
+                            mMap,
+                            "https://oc2.ocstatic.com/images/logo_small.png"
                     );
                     mMap.getUiSettings().setZoomControlsEnabled(false);
                     mMap.getUiSettings().setAllGesturesEnabled(true);
@@ -253,7 +254,7 @@ public class MapPlaybackController {
 
                     mapPlaybackDataHolder.setPolyLine(mMap.addPolyline(seekPolylineOptions));
 
-                    mapPlaybackViewHolder.drawMarker(
+                    Marker marker = mapPlaybackViewHolder.drawMarker(
                             seekBarLatLong.latitude,
                             seekBarLatLong.longitude,
                             PLAYBACK_MARKER_TITLE,
@@ -261,6 +262,7 @@ public class MapPlaybackController {
                             false,
                             true
                     );
+                    mapPlaybackDataHolder.setPlaybackMarker(marker);
 
                     //old replacement code
 //
@@ -282,14 +284,14 @@ public class MapPlaybackController {
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                if (animationState == ANIMATION_PAUSE) {
+                if (mapPlaybackDataHolder.getAnimationState() == ANIMATION_PAUSE) {
 
                 } else {
                     onClickPause();
                     new Handler().postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            animationState = ANIMATION_SEEKING;
+                            mapPlaybackDataHolder.setAnimationState(ANIMATION_SEEKING);
                         }
                     }, DELAY);
                 }
@@ -306,7 +308,7 @@ public class MapPlaybackController {
                     @Override
                     public void run() {
                         mapPlaybackDataHolder.setSeekBarTouching(false);
-                        if (animationState == ANIMATION_SEEKING) {
+                        if (mapPlaybackDataHolder.getAnimationState() == ANIMATION_SEEKING) {
                             onClickPlay();
                         }
                     }

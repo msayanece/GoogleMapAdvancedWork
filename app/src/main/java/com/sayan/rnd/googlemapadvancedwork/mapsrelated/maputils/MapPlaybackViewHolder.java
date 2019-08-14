@@ -101,7 +101,7 @@ public class MapPlaybackViewHolder {
      * @param googleMap the map on which the marker needs to be draw
      * @return the created marker object
      */
-    public Marker drawMarker(double latitude, double longitude, String title, GoogleMap googleMap) {
+    public Marker drawMarker(double latitude, double longitude, String title, GoogleMap googleMap, String imageURL) {
         //create and draw the marker
         Marker marker = MarkerStyleUtil.setMarkerInMap(
                 googleMap,
@@ -116,7 +116,7 @@ public class MapPlaybackViewHolder {
         MarkerStyleUtil.setCustomMarkerCircular(
                 activity,
                 marker,
-                "https://oc2.ocstatic.com/images/logo_small.png"
+                imageURL
         );
         return marker;
     }

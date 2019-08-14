@@ -84,7 +84,8 @@ public class MapsAnimationPlaybackActivity extends AppCompatActivity implements 
         mapPlaybackController.initializeSeekBar(locations.size() - 1);
         //draw the marker responsible for play back. disable info window
         Marker playbackMarker = mapPlaybackController.getMapPlaybackViewHolder().drawMarker(
-                fromLatitude, fromLongitude, PLAYBACK_MARKER_TITLE, googleMap
+                fromLatitude, fromLongitude, PLAYBACK_MARKER_TITLE, googleMap,
+                "https://oc2.ocstatic.com/images/logo_small.png"
         );
         saveFromToLocationOnDataHolder(fromLatitude, fromLongitude, toLatitude, toLongitude, mapPlaybackController);
         playbackMarker.hideInfoWindow();
@@ -97,8 +98,10 @@ public class MapsAnimationPlaybackActivity extends AppCompatActivity implements 
                 .build();
         //draw marker on from position
         Marker fromMarker = mapPlaybackController.getMapPlaybackViewHolder().drawMarker(
-                fromLatitude, fromLongitude, "From", googleMap
+                fromLatitude, fromLongitude, "From", googleMap,
+                "https://interactive-examples.mdn.mozilla.net/media/examples/grapefruit-slice-332-332.jpg"
         );
+        mapPlaybackController.getMapPlaybackDataHolder().setPlaybackMarker(playbackMarker);
         //move the map camera to initial from location
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(fromLatitude, fromLongitude)));
         prepareDataAndStartAnimation(googleMap, locations);
@@ -137,7 +140,7 @@ public class MapsAnimationPlaybackActivity extends AppCompatActivity implements 
 //            }
 
         mapPlaybackController.addMarkerToMap(new LatLng(latitude, longitude), googleMap);
-//            points.add(new LatLng(latitude, longitude));
+            mapPlaybackController.getMapPlaybackDataHolder().getPoints().add(new LatLng(latitude, longitude));
 //            dates.add(datetime);
         }
         mapPlaybackController.startAnimation();
