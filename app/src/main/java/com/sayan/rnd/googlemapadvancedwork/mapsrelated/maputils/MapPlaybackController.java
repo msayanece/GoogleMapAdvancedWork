@@ -1,15 +1,21 @@
 package com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils;
 
 import android.graphics.Color;
+import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.os.Handler;
+import android.os.SystemClock;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
 import android.widget.SeekBar;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -33,16 +39,18 @@ public class MapPlaybackController {
     private double playPauseLatitude;
     private double playPauseLongitude;
 
-    private MapPlaybackController(MapsAnimationPlaybackActivity mapsAnimationPlaybackActivity, GoogleMap mMap){
+    private MapPlaybackController(MapsAnimationPlaybackActivity mapsAnimationPlaybackActivity, GoogleMap mMap) {
         this.mapsAnimationPlaybackActivity = mapsAnimationPlaybackActivity;
         this.mapPlaybackViewHolder = new MapPlaybackViewHolder(mapsAnimationPlaybackActivity);
         this.mapPlaybackDataHolder = MapPlaybackDataHolder.getInstance();
+        this.mapPlaybackDataHolder.setmMap(mMap);
         this.MyCancelableCallback = new MapAnimationCallback(mapPlaybackDataHolder, this);
         this.mMap = mMap;
+        setSeekBarChangeListener();
     }
 
-    public static MapPlaybackController getInstance(){
-        if (instance == null){
+    public static MapPlaybackController getInstance() {
+        if (instance == null) {
             throw new SetupException(
                     "MapPlaybackController not initialized properly: Please call getInstance" +
                             "(MapsAnimationPlaybackActivity mapsAnimationPlaybackActivity, GoogleMap mMap)" +
@@ -51,8 +59,8 @@ public class MapPlaybackController {
         return instance;
     }
 
-    public static MapPlaybackController getInstance(MapsAnimationPlaybackActivity mapsAnimationPlaybackActivity, GoogleMap mMap){
-        if (instance == null){
+    public static MapPlaybackController getInstance(MapsAnimationPlaybackActivity mapsAnimationPlaybackActivity, GoogleMap mMap) {
+        if (instance == null) {
             instance = new MapPlaybackController(mapsAnimationPlaybackActivity, mMap);
         }
         return instance;
@@ -66,10 +74,66 @@ public class MapPlaybackController {
         return mapPlaybackViewHolder;
     }
 
+    public void initializeSeekBar(int maxValue) {
+        mapPlaybackViewHolder.getSeekBar().getThumb().setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN);
+        mapPlaybackViewHolder.getSeekBar().setMax(maxValue);
+    }
+
+    public void addMarkerToMap(LatLng latLng, GoogleMap googleMap) {
+        Marker marker = mapPlaybackViewHolder.addNewSnippetMarkerToMap(latLng, googleMap);
+        mapPlaybackDataHolder.getMarkers().add(marker);
+    }
+
+    public void animateMarker(GoogleMap googleMap, final Marker playbackMarker, final LatLng targetLatLng, final boolean hideMarker, final int delay) {
+        if (!mapPlaybackDataHolder.isSeekBarTouching()) {
+            final Handler handler = new Handler();
+            final long start = SystemClock.uptimeMillis();
+            if (mMap == null) {
+                return;
+            }
+            Projection proj = mMap.getProjection();
+            Point startPoint = proj.toScreenLocation(playbackMarker.getPosition());
+            final LatLng startLatLng = proj.fromScreenLocation(startPoint);
+            final long duration = delay;
+            final Interpolator interpolator = new LinearInterpolator();
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    long elapsed = SystemClock.uptimeMillis() - start;
+                    float t = interpolator.getInterpolation((float) elapsed
+                            / duration);
+                    double lng = t * targetLatLng.longitude + (1 - t)
+                            * startLatLng.longitude;
+                    double lat = t * targetLatLng.latitude + (1 - t)
+                            * startLatLng.latitude;
+                    playbackMarker.setPosition(new LatLng(lat, lng));
+                    if (!mapPlaybackDataHolder.isSeekBarTouching()) {
+                        mapPlaybackDataHolder.updatePolyLine(new LatLng(lat, lng));
+                    } else {
+                        Log.d("Seek", "run: " + mapPlaybackDataHolder.isSeekBarTouching());
+                    }
+                    if (t < 1.0) {
+                        // Post again some ms later.
+                        handler.postDelayed(this, (delay / 167));
+                    } else {
+                        if (hideMarker) {
+                            playbackMarker.setVisible(false);
+                        } else {
+                            playbackMarker.setPosition(targetLatLng);
+                            playbackMarker.setVisible(true);
+//                        updatePolyLine(toPosition);
+//                        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(toPosition.latitude, toPosition.longitude)));
+                        }
+                    }
+                }
+            });
+        }
+    }
+
     public void onClickPlay() {
-        if (mapPlaybackDataHolder.getCurrentPoint() == mapPlaybackDataHolder.getMarkers().size()-1){
-//            mapsAnimationPlaybackActivity.onMapReady(mMap);
-        }else {
+        if (mapPlaybackDataHolder.getCurrentPoint() == mapPlaybackDataHolder.getMarkers().size() - 1) {
+            mapsAnimationPlaybackActivity.onMapReady(mMap);
+        } else {
             if (playPauseLatitude != 0.0 && playPauseLongitude != 0.0) {
                 playAnimation();
             }
@@ -117,10 +181,34 @@ public class MapPlaybackController {
         mapsAnimationPlaybackActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
+    public void startAnimation() {
+        mapPlaybackDataHolder.setPolyLine(getMapPlaybackViewHolder().initializePolyLine(mMap, mapPlaybackDataHolder.getMarkers()));
+        mMap.getUiSettings().setZoomControlsEnabled(false);
+        mMap.getUiSettings().setAllGesturesEnabled(false);
+//        try {
+//            // Customise the styling of the base map using a JSON object defined
+//            // in a raw resource file.
+//            boolean success = mMap.setMapStyle(
+//                    MapStyleOptions.loadRawResourceStyle(
+//                            GroupHistoryTrackingAnimation.this, R.raw.gpsinhandmapstylegreenanimation));
+//            if (!success) {
+//                Log.e("sayan", "Style parsing failed.");
+//            }
+//        } catch (Resources.NotFoundException e) {
+//            Log.e("sayan", "Can't find style. Error: ", e);
+//        }
+        mMap.animateCamera(
+                CameraUpdateFactory.zoomTo(mMap.getCameraPosition().zoom + 0.5f),
+                DELAY,
+                MyCancelableCallback);
+        mapPlaybackDataHolder.setCurrentPoint(0 - 1);
+        mapsAnimationPlaybackActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+
     public void stopAnimation() {
 //        mMap.getUiSettings().setZoomControlsEnabled(true);
 
-        if (mapPlaybackDataHolder.getCurrentPoint() == mapPlaybackDataHolder.getMarkers().size()-1) {
+        if (mapPlaybackDataHolder.getCurrentPoint() == mapPlaybackDataHolder.getMarkers().size() - 1) {
             mapPlaybackViewHolder.getButtonPlay().setVisibility(View.VISIBLE);
             mapPlaybackViewHolder.getButtonPause().setVisibility(View.GONE);
         }
@@ -134,7 +222,7 @@ public class MapPlaybackController {
         mapPlaybackViewHolder.getSeekBar().setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Log.d("Seek", "onProgressChanged: "+progress+"fromUser: "+fromUser);
+                Log.d("Seek", "onProgressChanged: " + progress + "fromUser: " + fromUser);
                 if (fromUser) {
                     onClickPause();
                     mapPlaybackDataHolder.setCurrentPoint(progress);
@@ -155,8 +243,8 @@ public class MapPlaybackController {
                     mMap.getUiSettings().setZoomControlsEnabled(false);
                     mMap.getUiSettings().setAllGesturesEnabled(true);
                     LatLng seekBarLatLong = mapPlaybackDataHolder.getPoints().get(progress);
-                    PolylineOptions seekPolylineOptions= new PolylineOptions();
-                    for (int i = 0; i <= progress; i++){
+                    PolylineOptions seekPolylineOptions = new PolylineOptions();
+                    for (int i = 0; i <= progress; i++) {
                         seekPolylineOptions.add(mapPlaybackDataHolder.getPoints().get(i));
                     }
                     seekPolylineOptions.color(Color.BLUE);
@@ -194,16 +282,16 @@ public class MapPlaybackController {
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                if (animationState == ANIMATION_PAUSE){
+                if (animationState == ANIMATION_PAUSE) {
 
-                }else {
+                } else {
                     onClickPause();
                     new Handler().postDelayed(new Runnable() {
                         @Override
                         public void run() {
                             animationState = ANIMATION_SEEKING;
                         }
-                    },DELAY);
+                    }, DELAY);
                 }
                 mapPlaybackDataHolder.setSeekBarTouching(true);
                 Log.d("Seek", "onStartTrackingTouch: ");
@@ -218,11 +306,11 @@ public class MapPlaybackController {
                     @Override
                     public void run() {
                         mapPlaybackDataHolder.setSeekBarTouching(false);
-                        if (animationState == ANIMATION_SEEKING){
+                        if (animationState == ANIMATION_SEEKING) {
                             onClickPlay();
                         }
                     }
-                },DELAY);
+                }, DELAY);
             }
         });
     }
@@ -231,9 +319,19 @@ public class MapPlaybackController {
         mapsAnimationPlaybackActivity.onBackPressed();
     }
 
-    public void notifyDataSetChanged(){
-        String currentDateTime = mapPlaybackDataHolder.getDates().get(mapPlaybackDataHolder.getCurrentPoint());
-        String currentAddress = mapPlaybackDataHolder.getAddresses().get(mapPlaybackDataHolder.getCurrentPoint());
+    public void notifyDataSetChanged() {
+        String currentDateTime = "";
+        String currentAddress = "";
+        if (mapPlaybackDataHolder.getDates() != null) {
+            if (!mapPlaybackDataHolder.getDates().isEmpty()) {
+                currentDateTime = mapPlaybackDataHolder.getDates().get(mapPlaybackDataHolder.getCurrentPoint());
+            }
+        }
+        if (mapPlaybackDataHolder.getAddresses() != null) {
+            if (!mapPlaybackDataHolder.getAddresses().isEmpty()) {
+                currentAddress = mapPlaybackDataHolder.getAddresses().get(mapPlaybackDataHolder.getCurrentPoint());
+            }
+        }
         mapPlaybackViewHolder.notifyDataSetChanged(
                 currentDateTime,
                 currentAddress,

@@ -37,6 +37,9 @@ import com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackContr
 import com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackDataHolder;
 import com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MarkerStyleUtil;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 
 import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.ANIMATION_DEFAULT;
@@ -56,8 +59,7 @@ public class MapsAnimationPlaybackActivity extends AppCompatActivity implements 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.playbackMap);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
-        }
-        else {
+        } else {
             Toast.makeText(this, "Unable to load map", Toast.LENGTH_SHORT).show();
         }
     }
@@ -78,6 +80,8 @@ public class MapsAnimationPlaybackActivity extends AppCompatActivity implements 
         fromLongitude = locations.get(0).longitude;
         toLatitude = locations.get(locations.size() - 1).longitude;
         toLongitude = locations.get(locations.size() - 1).longitude;
+        //initialize SeekBar
+        mapPlaybackController.initializeSeekBar(locations.size() - 1);
         //draw the marker responsible for play back. disable info window
         Marker playbackMarker = mapPlaybackController.getMapPlaybackViewHolder().drawMarker(
                 fromLatitude, fromLongitude, PLAYBACK_MARKER_TITLE, googleMap
@@ -97,8 +101,46 @@ public class MapsAnimationPlaybackActivity extends AppCompatActivity implements 
         );
         //move the map camera to initial from location
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(fromLatitude, fromLongitude)));
+        prepareDataAndStartAnimation(googleMap, locations);
         /*//draw marker on to position
         Marker toMarker = drawMarker(toLatitude, toLongitude, "To", googleMap);*/
+    }
+
+    public void prepareDataAndStartAnimation(GoogleMap googleMap, ArrayList<LatLng> locations) {
+        googleMap.getUiSettings().setMapToolbarEnabled(false);
+        googleMap.getUiSettings().setZoomControlsEnabled(false);
+        googleMap.setMaxZoomPreference(19f);
+        googleMap.setMinZoomPreference(5f);
+        for (int i = 0; i < locations.size(); i++) {
+            LatLng latLng = locations.get(i);
+            final double latitude = latLng.latitude;
+            final double longitude = latLng.longitude;
+
+            //work for address and datetime update TODO Uncomment this
+//            final String datetime = locDetailedObject.getString("datetime");
+//            String address = locDetailedObject.getString("address");
+
+//            if (!address.equals("")) {
+//                String[] addressArray = address.split(",");
+//                String streetAddress = addressArray[0] + ", " + addressArray[1];
+//                addresses.add(streetAddress);
+//            } else {
+//                addresses.add("");
+
+//                    if (i!=0) {
+//                        JSONObject prevLocDetailedObject = mJSONLocArray.getJSONObject(i - 1);
+//                        String prevAddress = prevLocDetailedObject.getString("address");
+//                        String[] addressArray = prevAddress.split(",");
+//                        String streetAddress = addressArray[0] + ", " + addressArray[1];
+//                        addresses.add(streetAddress);
+//                    }
+//            }
+
+        mapPlaybackController.addMarkerToMap(new LatLng(latitude, longitude), googleMap);
+//            points.add(new LatLng(latitude, longitude));
+//            dates.add(datetime);
+        }
+        mapPlaybackController.startAnimation();
     }
 
     private void saveFromToLocationOnDataHolder(double fromLatitude, double fromLongitude, double toLatitude, double toLongitude, MapPlaybackController mapPlaybackController) {
@@ -110,18 +152,18 @@ public class MapsAnimationPlaybackActivity extends AppCompatActivity implements 
     }
 
     public void playPauseButtonOnClick(View view) {
-        switch (view.getId()){
+        switch (view.getId()) {
             case R.id.buttonPlay:
-                if (MapPlaybackController.getInstance() != null){
+                if (MapPlaybackController.getInstance() != null) {
                     MapPlaybackController.getInstance().onClickPlay();
-                }else {
+                } else {
                     Toast.makeText(this, "Please wait for Map to load!", Toast.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.buttonPause:
-                if (MapPlaybackController.getInstance() != null){
+                if (MapPlaybackController.getInstance() != null) {
                     MapPlaybackController.getInstance().onClickPause();
-                }else {
+                } else {
                     Toast.makeText(this, "Please wait for Map to load!", Toast.LENGTH_SHORT).show();
                 }
                 break;
@@ -146,7 +188,7 @@ public class MapsAnimationPlaybackActivity extends AppCompatActivity implements 
         mapPlaybackController.clearMap();
     }
 
-    public static boolean isForeground(){
+    public static boolean isForeground() {
         return isActivityInForeground;
     }
 }

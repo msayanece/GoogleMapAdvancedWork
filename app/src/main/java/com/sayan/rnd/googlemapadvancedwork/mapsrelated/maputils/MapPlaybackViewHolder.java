@@ -3,11 +3,16 @@ package com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.os.Handler;
+import android.os.SystemClock;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.AppCompatSeekBar;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
@@ -15,12 +20,16 @@ import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.sayan.rnd.googlemapadvancedwork.R;
+
+import java.util.ArrayList;
 
 public class MapPlaybackViewHolder {
     private Activity activity;
@@ -74,6 +83,16 @@ public class MapPlaybackViewHolder {
         buttonPause.setVisibility(View.GONE);
     }
 
+    public Polyline initializePolyLine(GoogleMap googleMap, ArrayList<Marker> markers) {
+        //polyLinePoints = new ArrayList<LatLng>();
+        PolylineOptions rectOptions = new PolylineOptions();
+        rectOptions.add(markers.get(0).getPosition());
+        rectOptions.color(Color.BLUE);
+        rectOptions.geodesic(false);
+        rectOptions.width(6f);
+        return googleMap.addPolyline(rectOptions);
+    }
+
     /**
      * Map marker util method. Draw a custom circular marker on Map
      * @param latitude latitude of the marker position
@@ -99,6 +118,15 @@ public class MapPlaybackViewHolder {
                 marker,
                 "https://oc2.ocstatic.com/images/logo_small.png"
         );
+        return marker;
+    }
+
+    @NonNull
+    public Marker addNewSnippetMarkerToMap(LatLng latLng, GoogleMap googleMap) {
+        Marker marker = googleMap.addMarker(new MarkerOptions().position(latLng)
+                .title("title")
+                .snippet("snippet"));
+        marker.setVisible(false);
         return marker;
     }
 
@@ -131,11 +159,14 @@ public class MapPlaybackViewHolder {
     }
 
     public void notifyDataSetChanged(String currentDateTime, String currentAddress, int currentProgress){
-        dateTimeTextView.setText(currentDateTime);
+        if (currentDateTime != null) {
+            dateTimeTextView.setText(currentDateTime);
+        }
         if (currentAddress != null) {
             addressTextView.setText(currentAddress);
         }
         seekBar.setProgress(currentProgress);
         seekBar.getProgressDrawable().setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN);
     }
+
 }

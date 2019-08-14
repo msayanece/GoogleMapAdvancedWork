@@ -4,13 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/coordinatorLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".mapsrelated.activities.MapsAnimationPlaybackActivity"
+    >
 
     <RelativeLayout
         android:id="@+id/activity_map"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.gpsinhand.gps_in_hand.GroupHistoryTracking">
+        >
 
         <LinearLayout
             android:id="@+id/linearLayoutBottomBar"

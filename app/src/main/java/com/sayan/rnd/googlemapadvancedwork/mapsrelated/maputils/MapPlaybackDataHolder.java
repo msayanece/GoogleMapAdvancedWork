@@ -6,6 +6,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.ANIMATION_DEFAULT;
 
@@ -31,7 +32,9 @@ public class MapPlaybackDataHolder {
     private double toLatitude;
     private double toLongitude;
 
-    private MapPlaybackDataHolder() {}
+    private MapPlaybackDataHolder() {
+        initializeProperties();
+    }
 
     private MapPlaybackDataHolder(int currentPoint, ArrayList<Marker> markers) {
         this.currentPoint = currentPoint;
@@ -186,6 +189,15 @@ public class MapPlaybackDataHolder {
     }
 
     //endregion
+
+    /**
+     * Add the marker to the polyline.
+     */
+    public void updatePolyLine(LatLng latLng) {
+        List<LatLng> points = polyLine.getPoints();
+        points.add(latLng);
+        polyLine.setPoints(points);
+    }
 
     //region property util methods
     public int incrementCurrentPoint(){

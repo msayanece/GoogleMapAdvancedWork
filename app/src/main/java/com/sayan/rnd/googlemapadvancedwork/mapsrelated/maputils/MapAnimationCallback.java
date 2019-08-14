@@ -76,6 +76,7 @@ public class MapAnimationCallback implements GoogleMap.CancelableCallback{
                                 .zoom(mapPlaybackDataHolder.getGoogleMap().getCameraPosition().zoom)
                                 .build();
                 mapPlaybackController.notifyDataSetChanged();
+
                 switch (mapPlaybackDataHolder.getAnimationState()){
                     case ANIMATION_DEFAULT:
                         if (!mapPlaybackDataHolder.isSeekBarTouching()) {
@@ -89,7 +90,7 @@ public class MapAnimationCallback implements GoogleMap.CancelableCallback{
                             );
 //						googleMap.moveCamera(
 //								CameraUpdateFactory.newCameraPosition(cameraPosition));
-                            MarkerStyleUtil.animateMarker(mapPlaybackDataHolder.getGoogleMap(), mapPlaybackDataHolder.getPlaybackMarker(), targetLatLng, false, DELAY);
+                            mapPlaybackController.animateMarker(mapPlaybackDataHolder.getGoogleMap(), mapPlaybackDataHolder.getPlaybackMarker(), targetLatLng, false, DELAY);
 //                                markers.get(currentPt).showInfoWindow();
                         }
                         break;
@@ -120,7 +121,7 @@ public class MapAnimationCallback implements GoogleMap.CancelableCallback{
 
 //						googleMap.moveCamera(
 //								CameraUpdateFactory.newCameraPosition(cameraPosition));
-                            MarkerStyleUtil.animateMarker(mapPlaybackDataHolder.getGoogleMap(), mapPlaybackDataHolder.getPlaybackMarker(), targetLatLng, false, DELAY);
+                            mapPlaybackController.animateMarker(mapPlaybackDataHolder.getGoogleMap(), mapPlaybackDataHolder.getPlaybackMarker(), targetLatLng, false, DELAY);
 //                                markers.get(currentPt).showInfoWindow();
                         }
                         break;
