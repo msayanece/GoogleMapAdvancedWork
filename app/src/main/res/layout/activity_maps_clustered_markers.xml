@@ -4,16 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".mapsrelated.activities.MapsActivity">
+    tools:context=".mapsrelated.activities.MapsClusteredMarkersActivity">
 
-    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+    <fragment
+        android:id="@+id/markerClusteringMap"
         xmlns:map="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/map"
         map:cameraZoom="16"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.example.mapwithmarker.MapsMarkerActivity" />
+        tools:context=".mapsrelated.activities.MapsClusteredMarkersActivity" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

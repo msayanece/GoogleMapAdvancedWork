@@ -1,4 +1,4 @@
-package com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils;
+package com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.mapanimationplaybackrelated;
 
 import android.graphics.Color;
 import android.graphics.Point;
@@ -20,11 +20,11 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.sayan.rnd.googlemapadvancedwork.mapsrelated.activities.MapsAnimationPlaybackActivity;
 
-import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.ANIMATION_PAUSE;
-import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.ANIMATION_PLAY;
-import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.ANIMATION_SEEKING;
-import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.DELAY;
-import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.PLAYBACK_MARKER_TITLE;
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.mapanimationplaybackrelated.MapPlaybackConstants.ANIMATION_PAUSE;
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.mapanimationplaybackrelated.MapPlaybackConstants.ANIMATION_PLAY;
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.mapanimationplaybackrelated.MapPlaybackConstants.ANIMATION_SEEKING;
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.mapanimationplaybackrelated.MapPlaybackConstants.DELAY;
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.mapanimationplaybackrelated.MapPlaybackConstants.PLAYBACK_MARKER_TITLE;
 
 public class MapPlaybackController {
     private static MapPlaybackController instance;

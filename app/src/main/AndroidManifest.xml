@@ -14,6 +14,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".mapsrelated.activities.MapsClusteredMarkersActivity"></activity>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -52,7 +53,7 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <activity android:name=".mapsrelated.activities.MapsAnimationPlaybackActivity"></activity>
+        <activity android:name=".mapsrelated.activities.MapsAnimationPlaybackActivity" />
     </application>
 
 </manifest>

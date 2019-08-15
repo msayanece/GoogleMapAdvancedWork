@@ -1,4 +1,4 @@
-package com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils;
+package com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.mapanimationplaybackrelated;
 
 public class MapPlaybackConstants {
     public static final int ANIMATION_PAUSE = 1;

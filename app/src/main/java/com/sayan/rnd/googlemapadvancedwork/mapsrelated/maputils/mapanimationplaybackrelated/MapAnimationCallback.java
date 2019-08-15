@@ -1,4 +1,4 @@
-package com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils;
+package com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.mapanimationplaybackrelated;
 
 import android.os.Handler;
 
@@ -8,10 +8,10 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.sayan.rnd.googlemapadvancedwork.mapsrelated.activities.MapsAnimationPlaybackActivity;
 
-import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.ANIMATION_DEFAULT;
-import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.ANIMATION_PAUSE;
-import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.ANIMATION_PLAY;
-import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.DELAY;
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.mapanimationplaybackrelated.MapPlaybackConstants.ANIMATION_DEFAULT;
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.mapanimationplaybackrelated.MapPlaybackConstants.ANIMATION_PAUSE;
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.mapanimationplaybackrelated.MapPlaybackConstants.ANIMATION_PLAY;
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.mapanimationplaybackrelated.MapPlaybackConstants.DELAY;
 
 public class MapAnimationCallback implements GoogleMap.CancelableCallback{
 

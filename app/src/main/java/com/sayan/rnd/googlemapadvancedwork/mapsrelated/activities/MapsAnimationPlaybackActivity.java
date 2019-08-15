@@ -1,50 +1,26 @@
 package com.sayan.rnd.googlemapadvancedwork.mapsrelated.activities;
 
 import android.content.pm.ActivityInfo;
-import android.content.res.Resources;
-import android.graphics.Color;
-import android.graphics.Point;
-import android.graphics.PorterDuff;
-import android.os.Handler;
-import android.os.SystemClock;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.AppCompatSeekBar;
-import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
-import android.view.animation.Interpolator;
-import android.view.animation.LinearInterpolator;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.Polyline;
 import com.sayan.rnd.googlemapadvancedwork.R;
 import com.sayan.rnd.googlemapadvancedwork.mapsrelated.LocationDataHolder;
-import com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapAnimationUtil;
-import com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackController;
-import com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackDataHolder;
-import com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MarkerStyleUtil;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.mapanimationplaybackrelated.MapPlaybackController;
+import com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.mapanimationplaybackrelated.MapPlaybackDataHolder;
 
 import java.util.ArrayList;
 
-import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.ANIMATION_DEFAULT;
-import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.DELAY;
-import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.MapPlaybackConstants.PLAYBACK_MARKER_TITLE;
+import static com.sayan.rnd.googlemapadvancedwork.mapsrelated.maputils.mapanimationplaybackrelated.MapPlaybackConstants.PLAYBACK_MARKER_TITLE;
 
 public class MapsAnimationPlaybackActivity extends AppCompatActivity implements OnMapReadyCallback {
 
