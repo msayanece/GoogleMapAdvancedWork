@@ -8,15 +8,17 @@ public class MarkerItem implements ClusterItem {
     private LatLng mPosition;
     private String mTitle;
     private String mSnippet;
+    private int profilePhoto;
 
     public MarkerItem(double lat, double lng) {
         mPosition = new LatLng(lat, lng);
     }
 
-    public MarkerItem(double lat, double lng, String title, String snippet) {
+    public MarkerItem(double lat, double lng, String title, String snippet, int  profilePhoto) {
         mPosition = new LatLng(lat, lng);
         mTitle = title;
         mSnippet = snippet;
+        this.profilePhoto = profilePhoto;
     }
 
     @Override
@@ -32,5 +34,13 @@ public class MarkerItem implements ClusterItem {
     @Override
     public String getSnippet() {
         return mSnippet;
+    }
+
+    public int getProfilePhoto() {
+        return profilePhoto;
+    }
+
+    public void setProfilePhoto(int profilePhoto) {
+        this.profilePhoto = profilePhoto;
     }
 }
